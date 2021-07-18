@@ -29,11 +29,13 @@ def p_z(zs, cosmology): #here the zs have to be dense enough to permit numerical
     return pz
 
 def set_detector(instrument):
-
+    global injection_set
+    global injection_set_bns
     if instrument == "EarlyHigh":
         horizon = 478.4 * u.Mpc
         ms = np.genfromtxt('./nospin_mgrid_EH.txt')
         osnrs = np.genfromtxt('./nospin_snrgrid_EH.txt')
+
         injection_set = np.genfromtxt('./threshold_8_injections_EH.txt')
         injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_EH.txt')
         max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
@@ -700,7 +702,7 @@ class Population():
         #t_auto = np.mean(sampler.get_autocorr_time())
         samples = sampler.get_chain(discard = int(n/4), flat=True, thin=1)
         log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
-        print(log_prob_samples)
+        # print(log_prob_samples)
         return samples #, log_prob_samples
 
     def event_likelihood_one_samples(self, samples, params, nomean=False):
@@ -949,7 +951,7 @@ class Population():
         # global single
         if self.pop_type == "one":
             if self.selection:
-                mu = self.selection_norm(params, injection_set_bns[::10])
+                mu = self.selection_norm(params, injection_set_bns)
                 # print(mu)
             else:
                 mu = 1
@@ -960,7 +962,7 @@ class Population():
                 result = np.sum([np.log(self.event_likelihood_one_single(i, params))/mu for i in samples])
         elif self.pop_type =="two":
             if self.selection:
-                mu = self.selection_norm(params, injection_set_bns[::10])
+                mu = self.selection_norm(params, injection_set_bns)
                 # print(mu)
             else:
                 mu = 1
@@ -975,7 +977,7 @@ class Population():
                 result = np.sum([np.log(self.event_likelihood_two_single(i, params)/mu) for i in samples])
         elif self.pop_type =="nsbh":
             if self.selection:
-                mu = self.selection_norm(params, injection_set[::10])
+                mu = self.selection_norm(params, injection_set)
                 # print(mu)
             else:
                 mu = 1
@@ -986,7 +988,7 @@ class Population():
 
         elif self.pop_type =="nsbh_one":
             if self.selection:
-                mu = self.selection_norm(params, injection_set[::10])
+                mu = self.selection_norm(params, injection_set)
                 # print(mu)
             else:
                 mu = 1 # could replace w/ threshold 0
@@ -1109,7 +1111,7 @@ class Population():
                 p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.bh_min, self.bh_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.2, 0.2]
                 pos = p0 + pscale*np.random.randn(16, 8)
-            print(p0)
+            # print(p0)
 
         elif self.pop_type == "nsbh_one":
             ranges, pscale = fix_params_nsbh_one(fixed, self.vary_slope, self.spinning)
@@ -1215,7 +1217,7 @@ class Population():
 
         nwalkers, ndim = pos.shape
         if save_to is not None:
-            backend = emcee.backends.HDFBackend(filename)
+            backend = emcee.backends.HDFBackend(save_to)
             backend.reset(nwalkers, ndim)
 
         if mult:
