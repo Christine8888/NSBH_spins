@@ -28,6 +28,8 @@ def p_z(zs, cosmology): #here the zs have to be dense enough to permit numerical
     pz = pz_unnorm/np.trapz(pz_unnorm, zs) #numerically normalize
     return pz
 
+no_selection_injections = np.genfromtxt('./injections/threshold_0_injections.txt')
+
 def set_detector(instrument):
     global injection_set
     global injection_set_bns
@@ -84,20 +86,27 @@ def set_detector(instrument):
 
 set_detector("EarlyHigh")
 
+def p_inject_bns_one(m1, m2, m_min=1, m_max=3, beta=3):
+    p_m1 = 1/(m_max - m_min)
+    p_m2 = like_m2(m2, m1, m_min, beta=3)
+    return p_m1 * p_m2
+
 def p_inject_bns(m1, m2, m_min=1, m_max=3, beta=3):
     p_m1 = np.ones(m1.shape[0])/(m_max - m_min)
     p_m2 = like_m2(m2, m1, m_min, beta=3)
     return p_m1 * p_m2
 
-def p_inject_list(m1, m2, m1_min=3, m2_min=1, m2_max=3):
+def p_inject_list(m1, m2, m1_min=3, m2_min=1, m2_max=3, beta=3):
     p_m1 = like_plmin(m1, m1_min, alpha=4)
     p_m2 = np.ones(m2.shape[0])/(m2_max - m2_min)
-    return p_m1 * p_m2
+    #p_q = like_m2(m2, m1, m2_min, m2_max)
+    return p_m1 * p_m2 #* p_q
 
-def p_inject_one(m1, m2, m1_min=3, m2_min=1, m2_max=3):
+def p_inject_one(m1, m2, m1_min=3, m2_min=1, m2_max=3, beta=3):
     p_m1 = like_plmin_one(m1, m1_min, alpha=4)
     p_m2 = 1/(m2_max - m2_min)
-    return p_m1 * p_m2
+    #p_q = like_m2(m2, m1, m2_min, m2_max)
+    return p_m1 * p_m2 #* p_q
 
 def generate_distance(N, d_min=1, d_max=1.1): # doesn't work????
     # p_dist goes as D_L^2
@@ -132,14 +141,17 @@ def check_injection(m1, m2, interp, ref_dL = 1, threshold = DET_THRESHOLD): # re
 
 def create_injection_set(N, generate_injection, interp, threshold = DET_THRESHOLD):
     i = 0
+    # tot = 0
     injection_set = np.zeros((N, 2))
     while i < N:
+        # tot += 1
         injection = generate_injection()
         recovered, value = check_injection(injection[0], injection[1], interp, threshold = threshold)
         if recovered:
             # print(value)
             injection_set[i] = injection
             i += 1
+    # print(N/tot)
     return injection_set
 
 def generate_normal(size, mu, sigma):
@@ -212,6 +224,7 @@ def like_m2(m_2, m_1, m_min=1, beta=3):
     return like
 
 def generate_q(N, beta, m_1, m_min = 1):
+    # beta = beta-1
     draws = np.random.rand(N, 2)
     draws = draws * ((m_1**(beta+1))-(m_min**(beta+1))) # first scale to within (0,1)
     draws += m_min**(beta+1) # then shift so m_min is 0
@@ -297,12 +310,12 @@ def like_beta(x, beta):
     # beta = beta+1
     result = np.zeros(x.shape[0])
     mask = np.logical_and(x<=1, x>0)
-    result[mask] = x[mask]**beta/(beta+1)
+    result[mask] = x[mask]**beta*(beta+1)
     return result
 
 def like_beta_one(x, beta):
     if x <=1 and x >= 0:
-        return x**beta/(beta+1)
+        return x**beta*(beta+1)
     return 0
 
 def generate_plmin(N, x_min, alpha):
@@ -357,7 +370,7 @@ def draw_NSBH(params, spin, vary_slope = False, a_bh = 0.5, pop_type = 'nsbh'):
             elif pop_type == 'nsbh_one':
                 return float(generate_truncnormal(1, mu, sigma, lower=1, upper=m_crit(m_TOV, spin)))
 
-def generate_NSBH(N, params, nsbh_only = False, vary_slope = False, spinning=False, a_bh = 0.5, pop_type = 'nsbh', spin_params = [1.0, 0.0]):
+def generate_NSBH(N, params, nsbh_only = True, vary_slope = False, spinning=False, a_bh = 0.5, pop_type = 'nsbh', spin_params = [1.0, 0.0]):
     total = 0
     pop = np.zeros((N, 4))
 
@@ -508,7 +521,7 @@ class Population():
         N = injection_set.shape[0]
         new_set = np.hstack([injection_set, np.zeros((N,2))])
         if self.pop_type == 'one':
-            return (1/N) * np.sum(self.event_likelihood_one_one_samples(new_set, params, nomean=True)/p_inject_bns(new_set[:,0], new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_one_samples(new_set, params, nomean=True)/p_inject_bns(new_set[:,0], new_set[:,1]))
         elif self.pop_type == 'two':
             # print([self.event_likelihood_two_single(np.array([i]), params) for i in new_set])
             return (1/N) * np.sum(self.event_likelihood_two_samples(new_set, params, nomean=True)/p_inject_bns(new_set[:,0], new_set[:,1]))
@@ -526,23 +539,29 @@ class Population():
         n = self.N_samples
 
         if self.samples:
+
             population = np.zeros((N, int((n*0.75)*8), 4))
             i = 0
             while i < N:
+
                 new_draw = self.get_samples(n, return_p0=False)
                 if new_draw is not None:
                     population[i] = new_draw
                     i += 1
+
             return population
         else:
+            tot = 0
             population = np.zeros((N, 1, 4))
             i = 0
             while i < N:
+                tot += 1
                 new_draw = self.get_samples(n, return_p0=True)
                 if new_draw is not None:
                     population[i] = new_draw
                     i += 1
-            return population
+            print(N/tot)
+            return population, N/tot
 
 
 
@@ -918,6 +937,9 @@ class Population():
         return np.mean(p_m1*p_m2*p_q*spin_likes)
 
     def event_likelihood_nsbh_one_single(self, samples, params):
+        #truncs = truncnormal_like_one(i[0], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[3], i[2]))
+        #qlikes = like_m2(i[1], min([i[0], m_crit_slope(params[2], params[3], i[3])]))
+
         i = samples[0]
         p_m1 = like_plmin_one(i[0], params[3], params[4])
         # #print(i)
@@ -938,6 +960,7 @@ class Population():
 
         else:
             p_m2 = truncnormal_like_one(i[1], params[0], params[1], lower = 1, upper = m_crit(params[2], i[3]))
+            # print(m_crit(params[2], i[3]))
             if self.spinning:
                 spin_likes = self.pl_spin_one(i[3], params[5], params[6])
                 if not self.m1_nospin:
@@ -947,7 +970,7 @@ class Population():
             # print(spin_likes)
         # print(i, p_m2)
         # print(np.mean(p_m1*p_m2*p_q*spin_likes))
-        return np.mean(p_m1*p_m2*p_q*spin_likes)
+        return np.mean(p_m1*p_m2*p_q*spin_likes) #*spin_likes #p_m1*
 
 
     def pop_like(self, samples, params):
@@ -983,7 +1006,7 @@ class Population():
                 mu = self.selection_norm(params, injection_set)
                 # print(mu)
             else:
-                mu = 1
+                mu = self.selection_norm(params, no_selection_injections)
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_nsbh_samples(i, params)/mu) for i in samples])
             else:
@@ -994,7 +1017,7 @@ class Population():
                 mu = self.selection_norm(params, injection_set)
                 # print(mu)
             else:
-                mu = 1 # could replace w/ threshold 0
+                mu = self.selection_norm(params, no_selection_injections) # could replace w/ threshold 0
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_nsbh_one_samples(i, params)/mu) for i in samples])
             else:
