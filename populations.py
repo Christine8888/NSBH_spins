@@ -33,41 +33,41 @@ def set_detector(instrument):
     global injection_set_bns
     if instrument == "EarlyHigh":
         horizon = 478.4 * u.Mpc
-        ms = np.genfromtxt('./nospin_mgrid_EH.txt')
-        osnrs = np.genfromtxt('./nospin_snrgrid_EH.txt')
+        ms = np.genfromtxt('./injections/nospin_mgrid_EH.txt')
+        osnrs = np.genfromtxt('./injections/nospin_snrgrid_EH.txt')
 
-        injection_set = np.genfromtxt('./threshold_8_injections_EH.txt')
-        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_EH.txt')
+        injection_set = np.genfromtxt('./injections/threshold_8_injections_EH.txt')
+        injection_set_bns = np.genfromtxt('./injections/threshold_8_bns_injections_EH.txt')
         max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
         # print(type(max_z))
         zs = np.linspace(0.0,max_z, 10000)
 
     if instrument == "LateHigh":
         horizon = 1196.5 * u.Mpc # horizon for a 2+20 merger
-        ms = np.genfromtxt('./nospin_mgrid_LH.txt')
-        osnrs = np.genfromtxt('./nospin_snrgrid_LH.txt')
-        injection_set = np.genfromtxt('./threshold_8_injections_LH.txt')
-        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_LH.txt')
+        ms = np.genfromtxt('./injections/nospin_mgrid_LH.txt')
+        osnrs = np.genfromtxt('./injections/nospin_snrgrid_LH.txt')
+        injection_set = np.genfromtxt('./injections/threshold_8_injections_LH.txt')
+        injection_set_bns = np.genfromtxt('./injections/threshold_8_bns_injections_LH.txt')
 
         max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
         zs = np.linspace(0.0,max_z, 10000)
 
     if instrument == "Design":
         horizon = 1370.9 * u.Mpc # horizon for a 2+20 merger
-        ms = np.genfromtxt('./nospin_mgrid_D.txt')
-        osnrs = np.genfromtxt('./nospin_snrgrid_D.txt')
-        injection_set = np.genfromtxt('./threshold_8_injections_D.txt')
-        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_D.txt')
+        ms = np.genfromtxt('./injections/nospin_mgrid_D.txt')
+        osnrs = np.genfromtxt('./injections/nospin_snrgrid_D.txt')
+        injection_set = np.genfromtxt('./injections/threshold_8_injections_D.txt')
+        injection_set_bns = np.genfromtxt('./injections/threshold_8_bns_injections_D.txt')
 
         max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
         zs = np.linspace(0.0,max_z, 10000)
 
     if instrument == "APlus":
         horizon = 2744.7 * u.Mpc # horizon for a 2+20 merger
-        ms = np.genfromtxt('./nospin_mgrid_AP.txt')
-        osnrs = np.genfromtxt('./nospin_snrgrid_AP.txt')
-        injection_set = np.genfromtxt('./threshold_8_injections_AP.txt')
-        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_AP.txt')
+        ms = np.genfromtxt('./injections/nospin_mgrid_AP.txt')
+        osnrs = np.genfromtxt('./injections/nospin_snrgrid_AP.txt')
+        injection_set = np.genfromtxt('./injections/threshold_8_injections_AP.txt')
+        injection_set_bns = np.genfromtxt('./injections/threshold_8_bns_injections_AP.txt')
 
         max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
         zs = np.linspace(0.0,max_z, 10000)
@@ -1003,7 +1003,7 @@ class Population():
 
         return result
 
-    def infer(self, samples, steps, save_to=None, fixed = {}, mult=False):
+    def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False):
         """
         Perform inference on samples.
 
@@ -1230,17 +1230,13 @@ class Population():
                 pool.close()
                 pool.join()
 
-        else:
-            if save_to is not None:
-                backend = emcee.backends.HDFBackend(save_to)
-                backend.reset(nwalkers, ndim
-                sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, args=([samples]))
-            else:
-                sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, args=([samples]))
+        backend = emcee.backends.HDFBackend(save_to)
+        backend.reset(nwalkers, ndim)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, args=([samples]))
 
-            sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
-            posterior_samples = sampler.get_chain(discard = 100, flat=True)
-            log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
+        sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
+        posterior_samples = sampler.get_chain(discard = 100, flat=True)
+        log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
 
         return posterior_samples, log_prob_samples
 
