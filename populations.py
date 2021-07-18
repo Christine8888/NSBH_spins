@@ -1196,6 +1196,7 @@ class Population():
                                                     return self.pop_like(data, params)
                 return -np.inf
 
+            pscale /= np.sqrt(samples.shape[0])
 
             if self.vary_slope and self.spinning:
                 p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.slope, self.max_jjkep, self.spin_slope]
@@ -1228,8 +1229,15 @@ class Population():
                 log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
                 pool.close()
                 pool.join()
+
         else:
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, args=([samples]))
+            if save_to is not None:
+                backend = emcee.backends.HDFBackend(save_to)
+                backend.reset(nwalkers, ndim
+                sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, args=([samples]))
+            else:
+                sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, args=([samples]))
+
             sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
             posterior_samples = sampler.get_chain(discard = 100, flat=True)
             log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
