@@ -123,7 +123,7 @@ def optimal_snr_grid(mmin, mmax, dL = 1000.0, dist_unit = u.Mpc, nm = 100, psd_f
     ms = np.exp(np.linspace(np.log(mmin), np.log(mmax), nm))
     osnrs = np.zeros((nm, nm))
     for i, m1 in enumerate(ms):
-        print(m1)
+        # print(m1)
         for j in range(i+1):
             #print(i, j)
             m2 = ms[j]

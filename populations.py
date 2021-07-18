@@ -8,16 +8,79 @@ import corner
 import snr_calculation as s
 import astropy.cosmology as cosmo
 import astropy.units as u
+from multiprocessing.pool import ThreadPool as Pool
+from scipy.integrate import cumtrapz
+import scipy.interpolate as sip
+from scipy.interpolate import interp1d
 
-# utility functions
-DET_THRESHOLD = 12
-GRID = True
-if GRID:
-    ms = np.genfromtxt('./nospin_mgrid.txt')
-    osnrs = np.genfromtxt('./nospin_snrgrid.txt')
-    snr, interp = s.snr_sourceframe_from_grid(np.array([10]), np.array([10]), np.array([0.01]), ms, osnrs)
-injection_set = np.genfromtxt('./threshold_12_injections.txt')
-injection_set_bns = np.genfromtxt('./threshold_12_bns_injections.txt')
+DET_THRESHOLD = 8
+
+cosmology_1 = cosmo.wCDM(H0 = 70, Om0 = 0.3, Ode0 = 0.7, w0 = -1.0) #can change this
+
+def Rz_MD(z): #this has arbitrary units
+    #return (1+z)**2.7/(1 + ((1+z)/2.9)**5.6)
+    return 1
+
+def p_z(zs, cosmology): #here the zs have to be dense enough to permit numerical integration via trapz
+    #print(zs)
+    dVdz = cosmology.differential_comoving_volume(zs).to(u.Gpc**3/u.sr).value*4*math.pi
+    pz_unnorm = Rz_MD(zs) * dVdz * (1+zs)**-1 #not normalized
+    pz = pz_unnorm/np.trapz(pz_unnorm, zs) #numerically normalize
+    return pz
+
+def set_detector(instrument):
+
+    if instrument == "EarlyHigh":
+        horizon = 478.4 * u.Mpc
+        ms = np.genfromtxt('./nospin_mgrid_EH.txt')
+        osnrs = np.genfromtxt('./nospin_snrgrid_EH.txt')
+        injection_set = np.genfromtxt('./threshold_8_injections_EH.txt')
+        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_EH.txt')
+        max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
+        # print(type(max_z))
+        zs = np.linspace(0.0,max_z, 10000)
+
+    if instrument == "LateHigh":
+        horizon = 1196.5 * u.Mpc # horizon for a 2+20 merger
+        ms = np.genfromtxt('./nospin_mgrid_LH.txt')
+        osnrs = np.genfromtxt('./nospin_snrgrid_LH.txt')
+        injection_set = np.genfromtxt('./threshold_8_injections_LH.txt')
+        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_LH.txt')
+
+        max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
+        zs = np.linspace(0.0,max_z, 10000)
+
+    if instrument == "Design":
+        horizon = 1370.9 * u.Mpc # horizon for a 2+20 merger
+        ms = np.genfromtxt('./nospin_mgrid_D.txt')
+        osnrs = np.genfromtxt('./nospin_snrgrid_D.txt')
+        injection_set = np.genfromtxt('./threshold_8_injections_D.txt')
+        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_D.txt')
+
+        max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
+        zs = np.linspace(0.0,max_z, 10000)
+
+    if instrument == "APlus":
+        horizon = 2744.7 * u.Mpc # horizon for a 2+20 merger
+        ms = np.genfromtxt('./nospin_mgrid_AP.txt')
+        osnrs = np.genfromtxt('./nospin_snrgrid_AP.txt')
+        injection_set = np.genfromtxt('./threshold_8_injections_AP.txt')
+        injection_set_bns = np.genfromtxt('./threshold_8_bns_injections_AP.txt')
+
+        max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
+        zs = np.linspace(0.0,max_z, 10000)
+
+    pz_vals = p_z(zs, cosmology_1)
+    cumulative_pz = cumtrapz(pz_vals, zs, initial = 0.0)
+    global inv_cumulative_pz
+    inv_cumulative_pz = sip.interp1d(cumulative_pz, zs)
+    snr_local, interp_local = s.snr_sourceframe_from_grid(np.array([10]), np.array([10]), np.array([0.01]), ms, osnrs)
+    global snr
+    snr = snr_local
+    global interp
+    interp = interp_local
+
+set_detector("EarlyHigh")
 
 def p_inject_bns(m1, m2, m_min=1, m_max=3, beta=3):
     p_m1 = np.ones(m1.shape[0])/(m_max - m_min)
@@ -34,31 +97,45 @@ def p_inject_one(m1, m2, m1_min=3, m2_min=1, m2_max=3):
     p_m2 = 1/(m2_max - m2_min)
     return p_m1 * p_m2
 
-def generate_distance(N, d_min=1, d_max=20):
+def generate_distance(N, d_min=1, d_max=1.1): # doesn't work????
     # p_dist goes as D_L^2
     scale = d_max**3 -1
     rand = np.random.rand(N)
     return (rand*scale + 1)**(1/3) + d_min
+
+def generate_z(N):
+    rand = np.random.rand(N)
+    return inv_cumulative_pz(rand)
 
 def generate_injection(m1_min=3, alpha=4, m2_min=1, m2_max=3):
     m1 = float(generate_plmin(1, m1_min, alpha))
     m2 = np.random.rand()*(m2_max - m2_min) + m2_min
     return np.array([m1, m2])
 
-def check_injection(m1, m2, interp, ref_dL = 1000, threshold = 12):
-    dL = float(generate_distance(1))
-    z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, dL*u.Gpc)
+def generate_injection_bns(m_min=1, m_max=3, beta=3):
+    m_1 = np.random.rand()*(m_max-m_min) + m_min
+    m_2 = float(generate_q(1, beta, m_1, m_min = m_min))
+    return np.array([m_1, m_2])
+
+def check_injection(m1, m2, interp, ref_dL = 1, threshold = DET_THRESHOLD): # ref is 1000 Mpc or 1 Gpc
+    # dL = float(generate_distance(1))
+    # z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, dL*u.Gpc)
+    z = float(generate_z(1))
+    dL = cosmo.Planck15.luminosity_distance(z).to(u.Gpc).value
     theta = float(s.draw_thetas(1))
     # print(interp.ev(m1*(1+z), m2*(1+z)))
     snr = interp.ev(m1*(1+z), m2*(1+z)) * ref_dL/dL
+    # print(snr*theta)
     return (snr * theta) > threshold, snr*theta
 
-def create_injection_set(N, generate_injection, interp, threshold = 12):
+def create_injection_set(N, generate_injection, interp, threshold = DET_THRESHOLD):
     i = 0
     injection_set = np.zeros((N, 2))
     while i < N:
         injection = generate_injection()
-        if check_injection(injection[0], injection[1], interp, threshold = threshold):
+        recovered, value = check_injection(injection[0], injection[1], interp, threshold = threshold)
+        if recovered:
+            # print(value)
             injection_set[i] = injection
             i += 1
     return injection_set
@@ -548,9 +625,11 @@ class Population():
 
         if self.selection:
             detected, event_snr = check_injection(test_m_1, test_m_2, interp)
+            # print(event_snr)
             if not detected:
                 return None
             test_rho = event_snr
+
         else:
             test_rho = get_rho(1, 4, 12) # should replace w/ a distance
         # print(test_rho)
@@ -573,9 +652,9 @@ class Population():
 
         if self.m1_nospin:
             p0 = [test_m_1, test_m_2, test_chi_1, test_chi_2]
-            pscale = [0.1, 0.1, 0.01, 0.1]
+            pscale = [0.1, 0.1, 0.01, 0.05]
         else:
-            pscale = [0.1, 0.1, 0.1, 0.1]
+            pscale = [0.1, 0.1, 0.05, 0.05]
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
         nwalkers, ndim = pos.shape
@@ -590,7 +669,7 @@ class Population():
 
 
         def logpost_one(params, m_chirp, m_chirp_sigma, mass_ratio, mass_ratio_sigma, chi_eff, chi_eff_sigma):
-            if self.pop_type == 'nsbh':
+            if self.pop_type == 'nsbh' or self.pop_type == 'nsbh_one':
                 m1range = [3, 25]
                 m2range = [0.5, 3.5]
             else:
@@ -604,13 +683,14 @@ class Population():
 
                         if self.m1_nospin:
 
-                            if params[2] > 0 and params[2] < 0.1:
-                                if params[3] > 0 and params[3] < 1:
+                            if params[2] >= 0 and params[2] <= 0.01:
+                                # print('here')
+                                if params[3] >= 0 and params[3] <= 1:
                                     loglike = loglike_one(params, m_chirp, m_chirp_sigma, mass_ratio, mass_ratio_sigma, chi_eff, chi_eff_sigma)
                                     return loglike
                         else:
-                            if params[2] > 0 and params[2] < 1:
-                                if params[3] > 0 and params[3] < 1:
+                            if params[2] >= 0 and params[2] <= 1:
+                                if params[3] >= 0 and params[3] <= 1:
                                     loglike = loglike_one(params, m_chirp, m_chirp_sigma, mass_ratio, mass_ratio_sigma, chi_eff, chi_eff_sigma)
                                     return loglike
             return -np.inf
@@ -866,7 +946,7 @@ class Population():
 
 
     def pop_like(self, samples, params):
-
+        # global single
         if self.pop_type == "one":
             if self.selection:
                 mu = self.selection_norm(params, injection_set_bns[::10])
@@ -909,7 +989,7 @@ class Population():
                 mu = self.selection_norm(params, injection_set[::10])
                 # print(mu)
             else:
-                mu = 1
+                mu = 1 # could replace w/ threshold 0
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_nsbh_one_samples(i, params)/mu) for i in samples])
             else:
@@ -921,7 +1001,7 @@ class Population():
 
         return result
 
-    def infer(self, samples, steps, save_to=None, fixed = None):
+    def infer(self, samples, steps, save_to=None, fixed = {}, mult=False):
         """
         Perform inference on samples.
 
@@ -1138,10 +1218,19 @@ class Population():
             backend = emcee.backends.HDFBackend(filename)
             backend.reset(nwalkers, ndim)
 
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, args=([samples]))
-        sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
-        posterior_samples = sampler.get_chain(discard = 100, flat=True)
-        log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
+        if mult:
+            with Pool() as pool:
+                sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, pool=pool, args=([samples]))
+                sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
+                posterior_samples = sampler.get_chain(discard = 100, flat=True)
+                log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
+                pool.close()
+                pool.join()
+        else:
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, args=([samples]))
+            sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
+            posterior_samples = sampler.get_chain(discard = 100, flat=True)
+            log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
 
         return posterior_samples, log_prob_samples
 
@@ -1262,38 +1351,63 @@ def fix_params_one(fixed, vary_slope, spinning):
     pscale = np.zeros(count) + 0.00
 
     if "mu" in fixed:
-        ranges[0] = [fixed["mu"]-0.01, fixed["mu"]+0.01]
+        if isinstance(fixed["mu"], list):
+            list_ = fixed["mu"]
+            ranges[0] = [list_[1], list_[2]]
+        else:
+            ranges[0] = [fixed["mu"]-0.01, fixed["mu"]+0.01]
     else:
         ranges[0] = [1, 2]
         pscale[0] = 0.1
 
     if "sigma" in fixed:
-        ranges[1] = [fixed["sigma"]-0.01, fixed["sigma"]+0.01]
+        if isinstance(fixed["sigma"], list):
+            list_ = fixed["sigma"]
+            ranges[1] = [list_[1], list_[2]]
+        else:
+            ranges[1] = [fixed["sigma"]-0.01, fixed["sigma"]+0.01]
     else:
         ranges[1] = [0.01, 1]
         pscale[1] = 0.1
 
     if "m_TOV" in fixed:
-        ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
+        if isinstance(fixed["sigma"], list):
+            list_ = fixed["sigma"]
+            ranges[1] = [list_[1], list_[2]]
+        else:
+            ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
         ranges[2] = [1.5, 2.5]
         pscale[2] = 0.1
 
     if vary_slope:
         if "slope" in fixed:
-            ranges[3] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
+            if isinstance(fixed["slope"], list):
+                list_ = fixed["slope"]
+                ranges[3] = [list_[1], list_[2]]
+            else:
+                ranges[3] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
             ranges[3] = [0, 0.5]
             pscale[3] = 0.05
+
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[4] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[4] = [list_[1], list_[2]]
+                else:
+                    ranges[4] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[4] = [0, 1]
                 pscale[4] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[5] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[5] = [list_[1], list_[2]]
+                else:
+                    ranges[5] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[5] = [-0.01, 6]
                 pscale[5] = 0.2
@@ -1301,13 +1415,21 @@ def fix_params_one(fixed, vary_slope, spinning):
     else:
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[3] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[3] = [list_[1], list_[2]]
+                else:
+                    ranges[3] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[3] = [0, 1]
                 pscale[3] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[4] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[4] = [list_[1], list_[2]]
+                else:
+                    ranges[4] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[4] = [-0.01, 6]
                 pscale[4] = 0.2
@@ -1326,56 +1448,93 @@ def fix_params_two(fixed, vary_slope, spinning):
     pscale = np.zeros(count) + 0.00
 
     if "a" in fixed:
-        ranges[0] = [fixed["a"]-0.01, fixed["a"]+0.01]
+        if isinstance(fixed["a"], list):
+            list_ = fixed["a"]
+            ranges[0] = [list_[1], list_[2]]
+        else:
+            ranges[0] = [fixed["a"]-0.01, fixed["a"]+0.01]
     else:
         ranges[0] = [0, 1]
         pscale[0] = 0.05
 
     if "mu_1" in fixed:
-        ranges[1] = [fixed["mu_1"]-0.01, fixed["mu_1"]+0.01]
+        if isinstance(fixed["mu_1"], list):
+            list_ = fixed["mu_1"]
+            ranges[1] = [list_[1], list_[2]]
+        else:
+            ranges[1] = [fixed["mu_1"]-0.01, fixed["mu_1"]+0.01]
     else:
         ranges[1] = [1, 2]
         pscale[1] = 0.1
 
     if "sigma_1" in fixed:
-        ranges[2] = [fixed["sigma_1"]-0.01, fixed["sigma_1"]+0.01]
+        if isinstance(fixed["sigma_1"], list):
+            list_ = fixed["sigma_1"]
+            ranges[2] = [list_[1], list_[2]]
+        else:
+            ranges[2] = [fixed["sigma_1"]-0.01, fixed["sigma_1"]+0.01]
     else:
         ranges[2] = [0.01, 0.5]
         pscale[2] = 0.05
 
     if "mu_2" in fixed:
-        ranges[3] = [fixed["mu_2"]-0.01, fixed["mu_2"]+0.01]
+        if isinstance(fixed["mu_2"], list):
+            list_ = fixed["mu_2"]
+            ranges[3] = [list_[1], list_[2]]
+        else:
+            ranges[3] = [fixed["mu_2"]-0.01, fixed["mu_2"]+0.01]
     else:
         ranges[3] = [1, 2]
         pscale[3] = 0.1
 
     if "sigma_2" in fixed:
-        ranges[4] = [fixed["sigma_2"]-0.01, fixed["sigma_2"]+0.01]
+        if isinstance(fixed["sigma_2"], list):
+            list_ = fixed["sigma_2"]
+            ranges[4] = [list_[1], list_[2]]
+        else:
+            ranges[4] = [fixed["sigma_2"]-0.01, fixed["sigma_2"]+0.01]
     else:
         ranges[4] = [0.01, 0.5]
         pscale[4] = 0.05
 
     if "m_TOV" in fixed:
-        ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
+        if isinstance(fixed["m_TOV"], list):
+            list_ = fixed["m_TOV"]
+            ranges[5] = [list_[1], list_[2]]
+        else:
+            ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
         ranges[5] = [1.5, 2.5]
         pscale[5] = 0.1
 
     if vary_slope:
         if "slope" in fixed:
-            ranges[6] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
+            if isinstance(fixed["slope"], list):
+                list_ = fixed["slope"]
+                ranges[6] = [list_[1], list_[2]]
+            else:
+                ranges[6] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
             ranges[6] = [0, 0.5]
             pscale[6] = 0.05
+
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[7] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[7] = [list_[1], list_[2]]
+                else:
+                    ranges[7] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[7] = [0, 1]
                 pscale[7] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[8] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[8] = [list_[1], list_[2]]
+                else:
+                    ranges[8] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[8] = [-0.01, 6]
                 pscale[8] = 0.2
@@ -1383,13 +1542,21 @@ def fix_params_two(fixed, vary_slope, spinning):
     else:
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[6] = [list_[1], list_[2]]
+                else:
+                    ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[6] = [0, 1]
                 pscale[6] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[7] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[7] = [list_[1], list_[2]]
+                else:
+                    ranges[7] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[7] = [-0.01, 6]
                 pscale[7] = 0.2
@@ -1408,68 +1575,113 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
     pscale = np.zeros(count) + 0.00
 
     if "a" in fixed:
-        ranges[0] = [fixed["a"]-0.01, fixed["a"]+0.01]
+        if isinstance(fixed["a"], list):
+            list_ = fixed["a"]
+            ranges[0] = [list_[1], list_[2]]
+        else:
+            ranges[0] = [fixed["a"]-0.01, fixed["a"]+0.01]
     else:
         ranges[0] = [0, 1]
         pscale[0] = 0.05
 
     if "mu_1" in fixed:
-        ranges[1] = [fixed["mu_1"]-0.01, fixed["mu_1"]+0.01]
+        if isinstance(fixed["mu_1"], list):
+            list_ = fixed["mu_1"]
+            ranges[1] = [list_[1], list_[2]]
+        else:
+            ranges[1] = [fixed["mu_1"]-0.01, fixed["mu_1"]+0.01]
     else:
         ranges[1] = [1, 2]
         pscale[1] = 0.1
 
     if "sigma_1" in fixed:
-        ranges[2] = [fixed["sigma_1"]-0.01, fixed["sigma_1"]+0.01]
+        if isinstance(fixed["sigma_1"], list):
+            list_ = fixed["sigma_1"]
+            ranges[2] = [list_[1], list_[2]]
+        else:
+            ranges[2] = [fixed["sigma_1"]-0.01, fixed["sigma_1"]+0.01]
     else:
         ranges[2] = [0.01, 0.5]
         pscale[2] = 0.05
 
     if "mu_2" in fixed:
-        ranges[3] = [fixed["mu_2"]-0.01, fixed["mu_2"]+0.01]
+        if isinstance(fixed["mu_2"], list):
+            list_ = fixed["mu_2"]
+            ranges[3] = [list_[1], list_[2]]
+        else:
+            ranges[3] = [fixed["mu_2"]-0.01, fixed["mu_2"]+0.01]
     else:
         ranges[3] = [1, 2]
         pscale[3] = 0.1
 
     if "sigma_2" in fixed:
-        ranges[4] = [fixed["sigma_2"]-0.01, fixed["sigma_2"]+0.01]
+        if isinstance(fixed["sigma_2"], list):
+            list_ = fixed["sigma_2"]
+            ranges[4] = [list_[1], list_[2]]
+        else:
+            ranges[4] = [fixed["sigma_2"]-0.01, fixed["sigma_2"]+0.01]
     else:
         ranges[4] = [0.01, 0.5]
         pscale[4] = 0.05
 
     if "m_TOV" in fixed:
-        ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
+        if isinstance(fixed["m_TOV"], list):
+            list_ = fixed["m_TOV"]
+            ranges[5] = [list_[1], list_[2]]
+        else:
+            ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
         ranges[5] = [1.5, 2.5]
         pscale[5] = 0.1
 
     if "bh_min" in fixed:
-        ranges[6] = [fixed["bh_min"]-0.01, fixed["bh_min"]+0.01]
+        if isinstance(fixed["bh_min"], list):
+            list_ = fixed["bh_min"]
+            ranges[6] = [list_[1], list_[2]]
+        else:
+            ranges[6] = [fixed["bh_min"]-0.01, fixed["bh_min"]+0.01]
     else:
         ranges[6] = [3, 10]
         pscale[6] = 0.2
 
     if "bh_slope" in fixed:
-        ranges[7] = [fixed["bh_slope"]-0.01, fixed["bh_slope"]+0.01]
+        if isinstance(fixed["bh_slope"], list):
+            list_ = fixed["bh_slope"]
+            ranges[7] = [list_[1], list_[2]]
+        else:
+            ranges[7] = [fixed["bh_slope"]-0.01, fixed["bh_slope"]+0.01]
     else:
         ranges[7] = [1, 6]
         pscale[7] = 0.2
 
     if vary_slope:
         if "slope" in fixed:
-            ranges[8] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
+            if isinstance(fixed["slope"], list):
+                list_ = fixed["slope"]
+                ranges[8] = [list_[1], list_[2]]
+            else:
+                ranges[8] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
             ranges[8] = [0, 0.5]
             pscale[8] = 0.05
+
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[9] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[9] = [list_[1], list_[2]]
+                else:
+                    ranges[9] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[9] = [0, 1]
                 pscale[9] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[10] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[10] = [list_[1], list_[2]]
+                else:
+                    ranges[10] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[10] = [-0.01, 6]
                 pscale[10] = 0.2
@@ -1477,13 +1689,21 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
     else:
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[8] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[8] = [list_[1], list_[2]]
+                else:
+                    ranges[8] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[8] = [0, 1]
                 pscale[8] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[9] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[9] = [list_[1], list_[2]]
+                else:
+                    ranges[9] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[9] = [-0.01, 6]
                 pscale[9] = 0.2
@@ -1503,50 +1723,82 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
     pscale = np.zeros(count) + 0.00
 
     if "mu" in fixed:
-        ranges[0] = [fixed["mu"]-0.01, fixed["mu"]+0.01]
+        if isinstance(fixed["mu"], list):
+            list_ = fixed["mu"]
+            ranges[0] = [list_[1], list_[2]]
+        else:
+            ranges[0] = [fixed["mu"]-0.01, fixed["mu"]+0.01]
     else:
         ranges[0] = [1, 2]
         pscale[0] = 0.1
 
     if "sigma" in fixed:
-        ranges[1] = [fixed["sigma"]-0.01, fixed["sigma"]+0.01]
+        if isinstance(fixed["sigma"], list):
+            list_ = fixed["sigma"]
+            ranges[1] = [list_[1], list_[2]]
+        else:
+            ranges[1] = [fixed["sigma"]-0.01, fixed["sigma"]+0.01]
     else:
         ranges[1] = [0.01, 1]
         pscale[1] = 0.1
 
     if "m_TOV" in fixed:
-        ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
+        if isinstance(fixed["sigma"], list):
+            list_ = fixed["sigma"]
+            ranges[1] = [list_[1], list_[2]]
+        else:
+            ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
         ranges[2] = [1.5, 2.5]
         pscale[2] = 0.1
 
     if "bh_min" in fixed:
-        ranges[3] = [fixed["bh_min"]-0.01, fixed["bh_min"]+0.01]
+        if isinstance(fixed["bh_min"], list):
+            list_ = fixed["bh_min"]
+            ranges[3] = [list_[1], list_[2]]
+        else:
+            ranges[3] = [fixed["bh_min"]-0.01, fixed["bh_min"]+0.01]
     else:
         ranges[3] = [3, 10]
         pscale[3] = 0.2
 
     if "bh_slope" in fixed:
-        ranges[4] = [fixed["bh_slope"]-0.01, fixed["bh_slope"]+0.01]
+        if isinstance(fixed["bh_slope"], list):
+            list_ = fixed["bh_slope"]
+            ranges[4] = [list_[1], list_[2]]
+        else:
+            ranges[4] = [fixed["bh_slope"]-0.01, fixed["bh_slope"]+0.01]
     else:
         ranges[4] = [1, 6]
         pscale[4] = 0.2
 
     if vary_slope:
         if "slope" in fixed:
-            ranges[5] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
+            if isinstance(fixed["slope"], list):
+                list_ = fixed["slope"]
+                ranges[5] = [list_[1], list_[2]]
+            else:
+                ranges[5] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
             ranges[5] = [0, 0.5]
             pscale[5] = 0.05
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[6] = [list_[1], list_[2]]
+                else:
+                    ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[6] = [0, 1]
                 pscale[6] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[7] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[7] = [list_[1], list_[2]]
+                else:
+                    ranges[7] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[7] = [-0.01, 6]
                 pscale[7] = 0.2
@@ -1554,13 +1806,21 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
     else:
         if spinning:
             if "max_jjkep" in fixed:
-                ranges[5] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
+                if isinstance(fixed["max_jjkep"], list):
+                    list_ = fixed["max_jjkep"]
+                    ranges[5] = [list_[1], list_[2]]
+                else:
+                    ranges[5] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[5] = [0, 1]
                 pscale[5] = 0.05
 
             if "spin_slope" in fixed:
-                ranges[6] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
+                if isinstance(fixed["spin_slope"], list):
+                    list_ = fixed["spin_slope"]
+                    ranges[6] = [list_[1], list_[2]]
+                else:
+                    ranges[6] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
                 ranges[6] = [-0.01, 6]
                 pscale[6] = 0.2
