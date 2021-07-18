@@ -294,15 +294,16 @@ def like_plmin_one(x, m_min, alpha):
     return 0
 
 def like_beta(x, beta):
+    # beta = beta+1
     result = np.zeros(x.shape[0])
     mask = np.logical_and(x<=1, x>0)
-    result[mask] = x[mask]**beta*(beta+1)
+    result[mask] = x[mask]**beta/(beta+1)
     return result
 
 def like_beta_one(x, beta):
     if x <=1 and x >= 0:
-        return x**beta*(beta+1)
-    return result
+        return x**beta/(beta+1)
+    return 0
 
 def generate_plmin(N, x_min, alpha):
     rand = np.random.rand(N)
@@ -657,6 +658,8 @@ class Population():
             pscale = [0.1, 0.1, 0.01, 0.05]
         else:
             pscale = [0.1, 0.1, 0.05, 0.05]
+
+        pscale /= (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
         nwalkers, ndim = pos.shape
