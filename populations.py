@@ -431,7 +431,21 @@ class Population():
         spin_params -- maximum j/j_kep, slope (1-chi^b)
         """
 
+        self.pop_type = pop_type
+        self.vary_slope = vary_slope
+        print('vary slope: {}'.format(self.vary_slope))
+        self.selection = selection
+        print('selection: {}'.format(self.selection))
+        self.spinning = spinning
+        print('spinning: {}'.format(self.spinning))
+        self.m1_nospin = m1_nospin
+        print('no m1 spin: {}'.format(self.m1_nospin))
+        if self.spinning:
+            self.max_jjkep = spin_params[0]
+            self.spin_slope = spin_params[1]
+
         if pop_type == "one":
+            self.set_injection_spins(injection_set_bns)
             self.mu_1 = params[0]
             self.sigma_1 = params[1]
             self.m_TOV = params[2]
@@ -441,6 +455,7 @@ class Population():
                 self.slope = params[5]
 
         elif pop_type == "two":
+            self.set_injection_spins(injection_set_bns)
             self.a = params[0]
             self.mu_1 = params[1]
             self.sigma_1 = params[2]
@@ -454,6 +469,10 @@ class Population():
                 self.slope = params[8]
 
         elif pop_type == "nsbh_one":
+            if self.selection:
+                self.set_injection_spins(injection_set)
+            else:
+                self.set_injection_spins(no_selection_injections)
             self.mu = params[0]
             self.sigma = params[1]
             self.m_TOV = params[2]
@@ -466,6 +485,10 @@ class Population():
                 self.slope = params[7]
 
         elif pop_type == "nsbh":
+            if self.selection:
+                self.set_injection_spins(injection_set)
+            else:
+                self.set_injection_spins(no_selection_injections)
             self.a = params[0]
             self.mu_1 = params[1]
             self.sigma_1 = params[2]
@@ -480,18 +503,7 @@ class Population():
             if vary_slope:
                 self.slope = params[10]
 
-        self.pop_type = pop_type
-        self.vary_slope = vary_slope
-        print('vary slope: {}'.format(self.vary_slope))
-        self.selection = selection
-        print('selection: {}'.format(self.selection))
-        self.spinning = spinning
-        print('spinning: {}'.format(self.spinning))
-        self.m1_nospin = m1_nospin
-        print('no m1 spin: {}'.format(self.m1_nospin))
-        if self.spinning:
-            self.max_jjkep = spin_params[0]
-            self.spin_slope = spin_params[1]
+
 
     def uniform_spin_one(self, spin, max_jjkep):
         if spin < max_jjkep:
@@ -517,18 +529,17 @@ class Population():
         result[~mask] = 0
         return result
 
-    def selection_norm(self, params, injection_set):
-        N = injection_set.shape[0]
-        new_set = np.hstack([injection_set, np.zeros((N,2))])
+    def selection_norm(self, params):
+        N = self.new_set.shape[0]
         if self.pop_type == 'one':
-            return (1/N) * np.sum(self.event_likelihood_one_samples(new_set, params, nomean=True)/p_inject_bns(new_set[:,0], new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_one_samples(self.new_set, params, nomean=True)/p_inject_bns(self.new_set[:,0], self.new_set[:,1]))
         elif self.pop_type == 'two':
             # print([self.event_likelihood_two_single(np.array([i]), params) for i in new_set])
-            return (1/N) * np.sum(self.event_likelihood_two_samples(new_set, params, nomean=True)/p_inject_bns(new_set[:,0], new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_two_samples(self.new_set, params, nomean=True)/p_inject_bns(self.new_set[:,0], self.new_set[:,1]))
         elif self.pop_type == 'nsbh':
-            return (1/N) * np.sum(self.event_likelihood_nsbh_samples(new_set, params, nomean=True)/p_inject_list(new_set[:,0], new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_nsbh_samples(self.new_set, params, nomean=True)/p_inject_list(self.new_set[:,0], self.new_set[:,1]))
         elif self.pop_type == 'nsbh_one':
-            return (1/N) * np.sum(self.event_likelihood_nsbh_one_samples(new_set, params, nomean=True)/p_inject_list(new_set[:,0], new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True)/p_inject_list(self.new_set[:,0], self.new_set[:,1]))
 
 
     def get_population(self, N, samples=True, N_samples=500):
@@ -561,9 +572,19 @@ class Population():
                     population[i] = new_draw
                     i += 1
             print(N/tot)
-            return population, N/tot
+            return population#, N/tot
 
-
+    def set_injection_spins(self, injection_set):
+        N = injection_set.shape[0]
+        self.new_set = np.hstack([injection_set, np.zeros((N,2))])
+        if self.spinning:
+            if not self.m1_nospin:
+                self.new_set[:,2] = 1-generate_q(N, self.spin_params[1], 1, 1-self.spin_params[0])
+            self.new_set[:,3] = 1-generate_q(N, self.spin_params[1], 1, 1-self.spin_params[0])
+        else:
+            if not self.m1_nospin:
+                self.new_set[:,2] = np.random.rand(N)*self.max_jjkep
+            self.new_set[:,3] = np.random.rand(N)*self.max_jjkep
 
     def get_samples(self, n, return_p0=False):
         if self.m1_nospin:
@@ -977,8 +998,7 @@ class Population():
         # global single
         if self.pop_type == "one":
             if self.selection:
-                mu = self.selection_norm(params, injection_set_bns)
-                # print(mu)
+                mu = self.selection_norm(params)
             else:
                 mu = 1
 
@@ -988,8 +1008,7 @@ class Population():
                 result = np.sum([np.log(self.event_likelihood_one_single(i, params))/mu for i in samples])
         elif self.pop_type =="two":
             if self.selection:
-                mu = self.selection_norm(params, injection_set_bns)
-                # print(mu)
+                mu = self.selection_norm(params)
             else:
                 mu = 1
             if self.samples:
@@ -1002,22 +1021,15 @@ class Population():
                 # print(amu)
                 result = np.sum([np.log(self.event_likelihood_two_single(i, params)/mu) for i in samples])
         elif self.pop_type =="nsbh":
-            if self.selection:
-                mu = self.selection_norm(params, injection_set)
-                # print(mu)
-            else:
-                mu = self.selection_norm(params, no_selection_injections)
+            mu = self.selection_norm(params)
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_nsbh_samples(i, params)/mu) for i in samples])
             else:
                 result = np.sum([np.log(self.event_likelihood_nsbh_single(i, params)/mu) for i in samples])
 
         elif self.pop_type =="nsbh_one":
-            if self.selection:
-                mu = self.selection_norm(params, injection_set)
-                # print(mu)
-            else:
-                mu = self.selection_norm(params, no_selection_injections) # could replace w/ threshold 0
+            mu = self.selection_norm(params)
+
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_nsbh_one_samples(i, params)/mu) for i in samples])
             else:
