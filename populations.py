@@ -449,7 +449,8 @@ class Population():
             self.mu_1 = params[0]
             self.sigma_1 = params[1]
             self.m_TOV = params[2]
-            self.max_jjkep = params[3]
+            if not self.spinning:
+                self.max_jjkep = params[3]
             self.beta = params[4]
             if vary_slope:
                 self.slope = params[5]
@@ -463,7 +464,8 @@ class Population():
             # print(self.mu_2)
             self.sigma_2 = params[4]
             self.m_TOV = params[5]
-            self.max_jjkep = params[6]
+            if not self.spinning:
+                self.max_jjkep = params[6]
             self.beta = params[7]
             if vary_slope:
                 self.slope = params[8]
@@ -473,7 +475,8 @@ class Population():
             self.mu = params[0]
             self.sigma = params[1]
             self.m_TOV = params[2]
-            self.max_jjkep = params[3]
+            if not self.spinning:
+                self.max_jjkep = params[3]
             self.beta = params[4]
             self.bh_min = params[5]
             self.bh_slope = params[6]
@@ -492,7 +495,8 @@ class Population():
             self.mu_2 = params[3]
             self.sigma_2 = params[4]
             self.m_TOV = params[5]
-            self.max_jjkep = params[6]
+            if not self.spinning:
+                self.max_jjkep = params[6]
             self.beta = params[7]
             self.bh_min = params[8]
             self.bh_slope = params[9]
