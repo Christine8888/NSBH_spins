@@ -579,8 +579,8 @@ class Population():
         self.new_set = np.hstack([injection_set, np.zeros((N,2))])
         if self.spinning:
             if not self.m1_nospin:
-                self.new_set[:,2] = 1-generate_q(N, self.spin_params[1], 1, 1-self.spin_params[0])
-            self.new_set[:,3] = 1-generate_q(N, self.spin_params[1], 1, 1-self.spin_params[0])
+                self.new_set[:,2] = 1-generate_q(N, self.spin_slope[1], 1, 1-self.max_jjkep[0])
+            self.new_set[:,3] = 1-generate_q(N, self.spin_slope[1], 1, 1-self.max_jjkep[0])
         else:
             if not self.m1_nospin:
                 self.new_set[:,2] = np.random.rand(N)*self.max_jjkep
@@ -699,7 +699,7 @@ class Population():
         else:
             pscale = [0.1, 0.1, 0.05, 0.05]
 
-        pscale /= (test_rho/8)
+        pscale /= 0.125 * (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
         nwalkers, ndim = pos.shape
@@ -1053,6 +1053,7 @@ class Population():
 
         if self.pop_type == "one":
             ranges, pscale = fix_params_one(fixed, self.vary_slope, self.spinning)
+            pscale /= 0.5*np.sqrt(samples.shape[0])
             # print(ranges)
             # print(pscale)
             def logpost_one(params, data):
@@ -1098,7 +1099,8 @@ class Population():
 
         elif self.pop_type == "nsbh":
             ranges, pscale = fix_params_nsbh(fixed, self.vary_slope, self.spinning)
-            print(ranges, pscale)
+            pscale /= 0.5*np.sqrt(samples.shape[0])
+            # print(ranges, pscale)
             def logpost_one(params, data):
                 # params = a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
                 if params[0] > ranges[0,0] and params[0] < ranges[0,1]: # a
@@ -1154,6 +1156,7 @@ class Population():
         elif self.pop_type == "nsbh_one":
             ranges, pscale = fix_params_nsbh_one(fixed, self.vary_slope, self.spinning)
             print(ranges, pscale)
+            pscale /= 0.5*np.sqrt(samples.shape[0])
             def logpost_one(params, data):
                 if params[0] > ranges[0,0] and params[0] < ranges[0,1]: # mu
                      #must get diff peaks
@@ -1202,6 +1205,7 @@ class Population():
 
         elif self.pop_type == "two":
             ranges, pscale = fix_params_two(fixed, self.vary_slope, self.spinning)
+            pscale /= 0.5*np.sqrt(samples.shape[0])
             print(ranges, pscale)
             def logpost_one(params, data):
                 # params = a, mu1, sigma1, mu2, sigma2, m_TOV
@@ -1233,8 +1237,6 @@ class Population():
                                                             return -np.inf
                                                     return self.pop_like(data, params)
                 return -np.inf
-
-            pscale /= np.sqrt(samples.shape[0])
 
             if self.vary_slope and self.spinning:
                 p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.slope, self.max_jjkep, self.spin_slope]
