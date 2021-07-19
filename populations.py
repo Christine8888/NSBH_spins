@@ -445,7 +445,7 @@ class Population():
             self.spin_slope = spin_params[1]
 
         if pop_type == "one":
-            self.set_injection_spins(injection_set_bns)
+
             self.mu_1 = params[0]
             self.sigma_1 = params[1]
             self.m_TOV = params[2]
@@ -453,9 +453,9 @@ class Population():
             self.beta = params[4]
             if vary_slope:
                 self.slope = params[5]
-
-        elif pop_type == "two":
             self.set_injection_spins(injection_set_bns)
+        elif pop_type == "two":
+
             self.a = params[0]
             self.mu_1 = params[1]
             self.sigma_1 = params[2]
@@ -467,12 +467,9 @@ class Population():
             self.beta = params[7]
             if vary_slope:
                 self.slope = params[8]
-
+            self.set_injection_spins(injection_set_bns)
         elif pop_type == "nsbh_one":
-            if self.selection:
-                self.set_injection_spins(injection_set)
-            else:
-                self.set_injection_spins(no_selection_injections)
+
             self.mu = params[0]
             self.sigma = params[1]
             self.m_TOV = params[2]
@@ -483,12 +480,12 @@ class Population():
             self.a_bh = 0.5
             if vary_slope:
                 self.slope = params[7]
-
-        elif pop_type == "nsbh":
             if self.selection:
                 self.set_injection_spins(injection_set)
             else:
                 self.set_injection_spins(no_selection_injections)
+        elif pop_type == "nsbh":
+
             self.a = params[0]
             self.mu_1 = params[1]
             self.sigma_1 = params[2]
@@ -503,7 +500,10 @@ class Population():
             if vary_slope:
                 self.slope = params[10]
 
-
+            if self.selection:
+                self.set_injection_spins(injection_set)
+            else:
+                self.set_injection_spins(no_selection_injections)
 
     def uniform_spin_one(self, spin, max_jjkep):
         if spin < max_jjkep:
