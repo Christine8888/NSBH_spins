@@ -579,8 +579,8 @@ class Population():
         self.new_set = np.hstack([injection_set, np.zeros((N,2))])
         if self.spinning:
             if not self.m1_nospin:
-                self.new_set[:,2] = 1-generate_q(N, self.spin_slope[1], 1, 1-self.max_jjkep[0])
-            self.new_set[:,3] = 1-generate_q(N, self.spin_slope[1], 1, 1-self.max_jjkep[0])
+                self.new_set[:,2] = 1-generate_q(N, self.spin_slope, 1, 1-self.max_jjkep)
+            self.new_set[:,3] = 1-generate_q(N, self.spin_slope, 1, 1-self.max_jjkep)
         else:
             if not self.m1_nospin:
                 self.new_set[:,2] = np.random.rand(N)*self.max_jjkep
