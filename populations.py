@@ -1007,16 +1007,16 @@ class Population():
                 mu = 1
 
             if self.samples:
-                result = np.sum([np.log(self.event_likelihood_one_samples(i, params))/mu for i in samples])
+                result = np.sum([np.log(self.event_likelihood_one_samples(i, params)/mu) for i in samples])
             else:
-                result = np.sum([np.log(self.event_likelihood_one_single(i, params))/mu for i in samples])
+                result = np.sum([np.log(self.event_likelihood_one_single(i, params)/mu) for i in samples])
         elif self.pop_type =="two":
             if self.selection:
                 mu = self.selection_norm(params)
             else:
                 mu = 1
             if self.samples:
-                result = np.sum([np.log(self.event_likelihood_two_samples(i, params))/mu for i in samples])
+                result = np.sum([np.log(self.event_likelihood_two_samples(i, params)/mu) for i in samples])
             else:
                 # x = np.linspace(1.01, 2, 200)
                 # likes = two_truncnormal_like(x, params[0], params[1], params[2], params[3], params[4], 1, params[5])
@@ -1421,8 +1421,8 @@ def fix_params_one(fixed, vary_slope, spinning):
         pscale[1] = 0.1
 
     if "m_TOV" in fixed:
-        if isinstance(fixed["sigma"], list):
-            list_ = fixed["sigma"]
+        if isinstance(fixed["m_TOV"], list):
+            list_ = fixed["m_TOV"]
             ranges[1] = [list_[1], list_[2]]
         else:
             ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
@@ -1793,8 +1793,8 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
         pscale[1] = 0.1
 
     if "m_TOV" in fixed:
-        if isinstance(fixed["sigma"], list):
-            list_ = fixed["sigma"]
+        if isinstance(fixed["m_TOV"], list):
+            list_ = fixed["m_TOV"]
             ranges[1] = [list_[1], list_[2]]
         else:
             ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
