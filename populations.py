@@ -583,7 +583,7 @@ class Population():
                     population[i] = new_draw
                     i += 1
             print(N/tot)
-            return population, N/tot
+            return population#, N/tot
 
     def set_injection_spins(self, injection_set):
         N = injection_set.shape[0]
@@ -706,13 +706,14 @@ class Population():
 
         if self.m1_nospin:
             p0 = [test_m_1, test_m_2, test_chi_1, test_chi_2]
-            pscale = [0.1, 0.1, 0.01, 0.05]
+            pscale = [0.1, 0.1, 0.00, 0.05]
         else:
             pscale = [0.1, 0.1, 0.05, 0.05]
 
         pscale /= 0.125 * (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
+        print(pos)
         nwalkers, ndim = pos.shape
 
         def loglike_one(params, m_chirp, m_chirp_sigma, m_ratio, m_ratio_sigma, chi_eff, chi_eff_sigma):
@@ -752,7 +753,7 @@ class Population():
             return -np.inf
 
         sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, args=(test_mchirp, test_mchirp_sigma, test_ratio, test_ratio_sigma, test_chieff, test_chieff_sigma))
-        sampler.run_mcmc(pos, n, progress=False)
+        sampler.run_mcmc(pos, n, skip_initial_state_check=True, progress=False)
         #t_auto = np.mean(sampler.get_autocorr_time())
         samples = sampler.get_chain(discard = int(n/4), flat=True, thin=1)
         log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
