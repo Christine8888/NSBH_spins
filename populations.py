@@ -535,6 +535,11 @@ class Population():
 
     def selection_norm(self, params):
         N = self.new_set.shape[0]
+        if self.spinning:
+            spin_likes = self.pl_spin(self.new_set[:,3], self.max_jjkep, self.spin_slope)
+            if not self.m1_nospin:
+                spin_likes *= self.pl_spin(self.new_set[:,2], self.max_jjkep, self.spin_slope)
+
         if self.pop_type == 'one':
             return (1/N) * np.sum(self.event_likelihood_one_samples(self.new_set, params, nomean=True)/p_inject_bns(self.new_set[:,0], self.new_set[:,1]))
         elif self.pop_type == 'two':
@@ -543,6 +548,8 @@ class Population():
         elif self.pop_type == 'nsbh':
             return (1/N) * np.sum(self.event_likelihood_nsbh_samples(self.new_set, params, nomean=True)/p_inject_list(self.new_set[:,0], self.new_set[:,1]))
         elif self.pop_type == 'nsbh_one':
+            #print(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True))
+            #print(p_inject_list(self.new_set[:,0], self.new_set[:,1]))
             return (1/N) * np.sum(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True)/p_inject_list(self.new_set[:,0], self.new_set[:,1]))
 
 
@@ -576,7 +583,7 @@ class Population():
                     population[i] = new_draw
                     i += 1
             print(N/tot)
-            return population#, N/tot
+            return population, N/tot
 
     def set_injection_spins(self, injection_set):
         N = injection_set.shape[0]
@@ -840,7 +847,7 @@ class Population():
             else:
                 spin_likes = 1
         if nomean:
-            return p_m1*p_m2*p_q*spin_likes
+            return p_m1*p_m2*spin_likes*p_q
         return np.mean(p_m1*p_m2*p_q*spin_likes)
 
     def event_likelihood_nsbh_samples(self, samples, params, nomean=False):
@@ -1057,7 +1064,7 @@ class Population():
 
         if self.pop_type == "one":
             ranges, pscale = fix_params_one(fixed, self.vary_slope, self.spinning)
-            pscale /= 0.5*np.sqrt(samples.shape[0])
+            pscale /= np.sqrt(samples.shape[0])
             # print(ranges)
             # print(pscale)
             def logpost_one(params, data):
@@ -1103,7 +1110,7 @@ class Population():
 
         elif self.pop_type == "nsbh":
             ranges, pscale = fix_params_nsbh(fixed, self.vary_slope, self.spinning)
-            pscale /= 0.5*np.sqrt(samples.shape[0])
+            pscale /= np.sqrt(samples.shape[0])
             # print(ranges, pscale)
             def logpost_one(params, data):
                 # params = a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
@@ -1159,8 +1166,9 @@ class Population():
 
         elif self.pop_type == "nsbh_one":
             ranges, pscale = fix_params_nsbh_one(fixed, self.vary_slope, self.spinning)
+
+            pscale /= np.sqrt(samples.shape[0])
             print(ranges, pscale)
-            pscale /= 0.5*np.sqrt(samples.shape[0])
             def logpost_one(params, data):
                 if params[0] > ranges[0,0] and params[0] < ranges[0,1]: # mu
                      #must get diff peaks
@@ -1209,7 +1217,7 @@ class Population():
 
         elif self.pop_type == "two":
             ranges, pscale = fix_params_two(fixed, self.vary_slope, self.spinning)
-            pscale /= 0.5*np.sqrt(samples.shape[0])
+            pscale /= np.sqrt(samples.shape[0])
             print(ranges, pscale)
             def logpost_one(params, data):
                 # params = a, mu1, sigma1, mu2, sigma2, m_TOV
@@ -1449,7 +1457,7 @@ def fix_params_one(fixed, vary_slope, spinning):
                 else:
                     ranges[4] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[4] = [0, 1]
+                ranges[4] = [0, 1.2]
                 pscale[4] = 0.05
 
             if "spin_slope" in fixed:
@@ -1471,7 +1479,7 @@ def fix_params_one(fixed, vary_slope, spinning):
                 else:
                     ranges[3] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[3] = [0, 1]
+                ranges[3] = [0, 1.2]
                 pscale[3] = 0.05
 
             if "spin_slope" in fixed:
@@ -1576,7 +1584,7 @@ def fix_params_two(fixed, vary_slope, spinning):
                 else:
                     ranges[7] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[7] = [0, 1]
+                ranges[7] = [0, 1.2]
                 pscale[7] = 0.05
 
             if "spin_slope" in fixed:
@@ -1598,7 +1606,7 @@ def fix_params_two(fixed, vary_slope, spinning):
                 else:
                     ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[6] = [0, 1]
+                ranges[6] = [0, 1.2]
                 pscale[6] = 0.05
 
             if "spin_slope" in fixed:
@@ -1723,7 +1731,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
                 else:
                     ranges[9] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[9] = [0, 1]
+                ranges[9] = [0, 1.2]
                 pscale[9] = 0.05
 
             if "spin_slope" in fixed:
@@ -1745,7 +1753,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
                 else:
                     ranges[8] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[8] = [0, 1]
+                ranges[8] = [0, 1.2]
                 pscale[8] = 0.05
 
             if "spin_slope" in fixed:
@@ -1840,7 +1848,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
                 else:
                     ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[6] = [0, 1]
+                ranges[6] = [0, 1.2]
                 pscale[6] = 0.05
 
             if "spin_slope" in fixed:
@@ -1862,7 +1870,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
                 else:
                     ranges[5] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
-                ranges[5] = [0, 1]
+                ranges[5] = [0, 1.2]
                 pscale[5] = 0.05
 
             if "spin_slope" in fixed:
