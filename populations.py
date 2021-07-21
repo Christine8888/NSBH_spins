@@ -686,7 +686,7 @@ class Population():
 
         else:
             test_rho = get_rho(1, 4, 12) # should replace w/ a distance
-        # print(test_rho)
+        print(test_rho)
         test_mchirp = chirp_mass(test_m_1, test_m_2)
         test_mchirp_sigma = float(chirp_mass_sigma(test_m_1, test_m_2, test_rho))
         test_mchirp += float(np.random.randn()*test_mchirp_sigma)
@@ -710,7 +710,7 @@ class Population():
         else:
             pscale = [0.1, 0.1, 0.05, 0.05]
 
-        pscale /= 0.125 * (test_rho/8)
+        pscale /= (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
         print(pscale, pos)
