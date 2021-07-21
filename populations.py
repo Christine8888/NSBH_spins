@@ -541,16 +541,16 @@ class Population():
                 spin_likes *= self.pl_spin(self.new_set[:,2], self.max_jjkep, self.spin_slope)
 
         if self.pop_type == 'one':
-            return (1/N) * np.sum(self.event_likelihood_one_samples(self.new_set, params, nomean=True)/p_inject_bns(self.new_set[:,0], self.new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_one_samples(self.new_set, params, nomean=True)/(p_inject_bns(self.new_set[:,0], self.new_set[:,1])*spin_likes))
         elif self.pop_type == 'two':
             # print([self.event_likelihood_two_single(np.array([i]), params) for i in new_set])
-            return (1/N) * np.sum(self.event_likelihood_two_samples(self.new_set, params, nomean=True)/p_inject_bns(self.new_set[:,0], self.new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_two_samples(self.new_set, params, nomean=True)/(p_inject_bns(self.new_set[:,0], self.new_set[:,1])*spin_likes))
         elif self.pop_type == 'nsbh':
-            return (1/N) * np.sum(self.event_likelihood_nsbh_samples(self.new_set, params, nomean=True)/p_inject_list(self.new_set[:,0], self.new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_nsbh_samples(self.new_set, params, nomean=True)/(p_inject_list(self.new_set[:,0], self.new_set[:,1])*spin_likes))
         elif self.pop_type == 'nsbh_one':
             #print(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True))
             #print(p_inject_list(self.new_set[:,0], self.new_set[:,1]))
-            return (1/N) * np.sum(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True)/p_inject_list(self.new_set[:,0], self.new_set[:,1]))
+            return (1/N) * np.sum(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True)/(p_inject_list(self.new_set[:,0], self.new_set[:,1])*spin_likes))
 
 
     def get_population(self, N, samples=True, N_samples=500):
@@ -713,7 +713,7 @@ class Population():
         pscale /= 0.125 * (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
-        print(pos)
+        # print(pos)
         nwalkers, ndim = pos.shape
 
         def loglike_one(params, m_chirp, m_chirp_sigma, m_ratio, m_ratio_sigma, chi_eff, chi_eff_sigma):
