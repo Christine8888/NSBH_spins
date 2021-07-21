@@ -539,6 +539,8 @@ class Population():
             spin_likes = self.pl_spin(self.new_set[:,3], self.max_jjkep, self.spin_slope)
             if not self.m1_nospin:
                 spin_likes *= self.pl_spin(self.new_set[:,2], self.max_jjkep, self.spin_slope)
+        else:
+            spin_likes = 1
 
         if self.pop_type == 'one':
             return (1/N) * np.sum(self.event_likelihood_one_samples(self.new_set, params, nomean=True)/(p_inject_bns(self.new_set[:,0], self.new_set[:,1])*spin_likes))
@@ -686,7 +688,7 @@ class Population():
 
         else:
             test_rho = get_rho(1, 4, 12) # should replace w/ a distance
-        print(test_rho)
+        # print(test_rho)
         test_mchirp = chirp_mass(test_m_1, test_m_2)
         test_mchirp_sigma = float(chirp_mass_sigma(test_m_1, test_m_2, test_rho))
         test_mchirp += float(np.random.randn()*test_mchirp_sigma)
@@ -909,7 +911,32 @@ class Population():
                     spin_likes *= self.pl_spin_one(i[2], params[3], params[4])
             else:
                 spin_likes = 1
+        #print(qlikes)
         return np.mean(truncs*qlikes*spin_likes)
+
+    def event_likelihood_one_vec(self, samples, params, mu):
+        i = samples.squeeze()
+        if self.vary_slope:
+            truncs = truncnormal_like(i[:,0], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[3], i[:,2]))
+            qlikes = like_m2(i[:,1], np.min([i[:,0], m_crit_slope(params[2], params[3], i[:,3])]))
+            if test.spinning:
+                spin_likes = self.pl_spin(i[:, 3], params[4], params[5])
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:, 2], params[4], params[5])
+            else:
+                spin_likes = 1
+        else:
+            truncs = truncnormal_like(i[:,0], params[0], params[1], lower = 1, upper = m_crit(params[2], i[:,2]))
+            qlikes = like_m2(i[:,1], np.min([i[:,0], m_crit(params[2], i[:,3])], axis=0))
+            # print(np.min([i[:,0], p.m_crit(params[2], i[:,3])], axis=0))
+            if self.spinning:
+                spin_likes = self.pl_spin(i[:,3], params[3], params[4])
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:,2], params[3], params[4])
+            else:
+                spin_likes = 1
+        #/print(qlikes)
+        return np.sum(np.log(truncs*qlikes*spin_likes/(mu)))
 
     def event_likelihood_two_single(self, samples, params):
         i = samples[0]
@@ -934,6 +961,31 @@ class Population():
             else:
                 spin_likes = 1
         return np.mean(truncs*qlikes*spin_likes)
+
+    def event_likelihood_two_vec(self, samples, params, mu):
+        i = samples.squeeze()
+        if self.vary_slope:
+            truncs = two_truncnormal_like(x = i[:, 0], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
+                            mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit_slope(params[5], params[6], i[:, 2]))
+            qlikes = like_m2(i[:, 1], np.min([i[:, 0], m_crit_slope(params[5], params[6], i[:, 3])], axis=0))
+            if self.spinning:
+                spin_likes = self.pl_spin(i[3], params[7], params[8])
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:, 2], params[7], params[8])
+            else:
+                spin_likes = 1
+        else:
+            truncs = two_truncnormal_like(x = i[:, 0], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
+                            mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit(params[5], i[:, 2]))
+            qlikes = like_m2(i[:, 1], np.min([i[:, 0], m_crit(params[5], i[:, 3])], axis=0))
+            if self.spinning:
+                spin_likes = self.pl_spin(i[:, 3], params[6], params[7])
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:, 2], params[6], params[7])
+            else:
+                spin_likes = 1
+        #/print(qlikes)
+        return np.sum(np.log(truncs*qlikes*spin_likes/(mu)))
 
     def event_likelihood_nsbh_single(self, samples, params):
         i = samples[0]
@@ -969,6 +1021,41 @@ class Population():
                 spin_likes = 1
             # print(spin_likes)
         return np.mean(p_m1*p_m2*p_q*spin_likes)
+
+    def event_likelihood_nsbh_vec(self, samples, params, mu):
+        i = samples.squeeze()
+        # params: a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
+        # REPLACE LIKELIHOODS!
+        if self.vary_slope:
+            p_m1 = like_plmin(i[:,0], params[6], params[7])
+            p_m2 = two_truncnormal_like(i[:,1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
+                                      mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit_slope(params[5], params[8], i[:,3]))
+
+            q = i[:,1]/i[:,0]
+            p_q = like_beta(q, self.beta)
+            if self.spinning:
+                spin_likes = self.pl_spin(i[:,3], params[9], params[10])
+
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:,2], params[9], params[10])
+            else:
+                spin_likes = 1
+
+        else:
+            p_m1 = like_plmin(i[:,0], params[6], params[7])
+            # print(p_m1)
+            p_m2 = two_truncnormal_like(i[:,1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
+                                      mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit(params[5], i[:,3]))
+            q = i[:,1]/i[:,0]
+            p_q = like_beta(q, self.beta)
+            if self.spinning:
+                spin_likes = self.pl_spin(i[:,3], params[8], params[9])
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:,2], params[8], params[9])
+            else:
+                spin_likes = 1
+            # print(spin_likes)
+        return np.sum(np.log(p_m1*p_m2*p_q*spin_likes/(mu)))
 
     def event_likelihood_nsbh_one_single(self, samples, params):
         #truncs = truncnormal_like_one(i[0], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[3], i[2]))
@@ -1006,6 +1093,35 @@ class Population():
         # print(np.mean(p_m1*p_m2*p_q*spin_likes))
         return np.mean(p_m1*p_m2*p_q*spin_likes) #*spin_likes #p_m1*
 
+    def event_likelihood_nsbh_one_vec(self, samples, params, mu):
+        i = samples.squeeze()
+        p_m1 = like_plmin(i[:,0], params[3], params[4])
+        q = i[:,1]/i[:,0]
+        p_q = like_beta(q, self.beta)
+
+        if self.vary_slope:
+
+            p_m2 = truncnormal_like(i[:,1], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[5], i[:,3]))
+
+            if self.spinning:
+                spin_likes = self.pl_spin(i[:,3], params[6], params[7])
+
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:,2], params[6], params[7])
+            else:
+                spin_likes = 1
+
+        else:
+            p_m2 = truncnormal_like(i[:,1], params[0], params[1], lower = 1, upper = m_crit(params[2], i[:,3]))
+            # print(m_crit(params[2], i[3]))
+            if self.spinning:
+                spin_likes = self.pl_spin(i[:,3], params[5], params[6])
+                if not self.m1_nospin:
+                    spin_likes *= self.pl_spin(i[:,2], params[5], params[6])
+            else:
+                spin_likes = 1
+        return np.sum(np.log(p_m1*p_m2*p_q*spin_likes/(mu))) #*spin_likes #p_m1*
+
 
     def pop_like(self, samples, params):
         # global single
@@ -1018,7 +1134,8 @@ class Population():
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_one_samples(i, params)/mu) for i in samples])
             else:
-                result = np.sum([np.log(self.event_likelihood_one_single(i, params)/mu) for i in samples])
+                #result = np.sum([np.log(self.event_likelihood_one_single(i, params)/mu) for i in samples])
+                result = self.event_likelihood_one_vec(samples, params, mu)
         elif self.pop_type =="two":
             if self.selection:
                 mu = self.selection_norm(params)
@@ -1026,19 +1143,22 @@ class Population():
                 mu = 1
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_two_samples(i, params)/mu) for i in samples])
+
             else:
                 # x = np.linspace(1.01, 2, 200)
                 # likes = two_truncnormal_like(x, params[0], params[1], params[2], params[3], params[4], 1, params[5])
                 # print(likes)
                 # amu = np.trapz(likes*(x**2.2), x=x)
                 # print(amu)
-                result = np.sum([np.log(self.event_likelihood_two_single(i, params)/mu) for i in samples])
+                #result = np.sum([np.log(self.event_likelihood_two_single(i, params)/mu) for i in samples])
+                result = self.event_likelihood_two_vec(samples, params, mu)
         elif self.pop_type =="nsbh":
             mu = self.selection_norm(params)
             if self.samples:
                 result = np.sum([np.log(self.event_likelihood_nsbh_samples(i, params)/mu) for i in samples])
             else:
-                result = np.sum([np.log(self.event_likelihood_nsbh_single(i, params)/mu) for i in samples])
+                #result = np.sum([np.log(self.event_likelihood_nsbh_single(i, params)/mu) for i in samples])
+                result = self.event_likelihood_nsbh_vec(samples, params, mu)
 
         elif self.pop_type =="nsbh_one":
             mu = self.selection_norm(params)
@@ -1047,7 +1167,8 @@ class Population():
                 result = np.sum([np.log(self.event_likelihood_nsbh_one_samples(i, params)/mu) for i in samples])
             else:
                 # print([np.log(self.event_likelihood_nsbh_one_single(i, params)) for i in samples])
-                result = np.sum([np.log(self.event_likelihood_nsbh_one_single(i, params)/mu) for i in samples])
+                # result = np.sum([np.log(self.event_likelihood_nsbh_one_single(i, params)/mu) for i in samples])
+                result = self.event_likelihood_nsbh_one_vec(samples, params, mu)
 
         if math.isnan(result):
             return -np.inf
@@ -1274,23 +1395,24 @@ class Population():
         if save_to is not None:
             backend = emcee.backends.HDFBackend(save_to)
             backend.reset(nwalkers, ndim)
+        else:
+            backend=None
 
         if mult:
             with Pool() as pool:
-                sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, pool=pool, args=([samples]))
+                # print('pooling')
+                sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, pool=pool, args=([samples]))
                 sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
                 posterior_samples = sampler.get_chain(discard = 100, flat=True)
                 log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
                 pool.close()
                 pool.join()
+        else:
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, args=([samples]))
 
-        backend = emcee.backends.HDFBackend(save_to)
-        backend.reset(nwalkers, ndim)
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, args=([samples]))
-
-        sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
-        posterior_samples = sampler.get_chain(discard = 100, flat=True)
-        log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
+            sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True)
+            posterior_samples = sampler.get_chain(discard = 100, flat=True)
+            log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
 
         return posterior_samples, log_prob_samples
 
