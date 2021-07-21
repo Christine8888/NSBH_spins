@@ -713,6 +713,7 @@ class Population():
         pscale /= 0.125 * (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
+        print(pscale, pos)
         # print(pos)
         nwalkers, ndim = pos.shape
 
