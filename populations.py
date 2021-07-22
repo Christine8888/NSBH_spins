@@ -306,6 +306,13 @@ def like_plmin_one(x, m_min, alpha):
         return ((alpha-1)/m_min)*(x/m_min)**(-alpha)
     return 0
 
+def like_beta_nsbh(x, beta, maxNS = m_crit(2, 1), minBH = 5):
+    # beta = beta+1
+    result = np.zeros(x.shape[0])
+    mask = np.logical_and(x<=1, x>0)
+    result[mask] = x[mask]**beta*(beta+1)/((maxNS/minBH)**(beta+1))
+    return result
+
 def like_beta(x, beta):
     # beta = beta+1
     result = np.zeros(x.shape[0])
@@ -416,7 +423,7 @@ def generate_NSBH(N, params, nsbh_only = True, vary_slope = False, spinning=Fals
     return pop
 
 class Population():
-    def __init__(self, params, pop_type, vary_slope=False, selection=False, spinning = False, m1_nospin = False, spin_params = [1.0, 0.0]):
+    def __init__(self, params, pop_type, vary_slope=False, selection=False, spinning = False, m1_nospin = False, spin_params = [1.0, 0.0], verbose=True):
         """
         Population of compact objects.
 
@@ -433,16 +440,23 @@ class Population():
 
         self.pop_type = pop_type
         self.vary_slope = vary_slope
-        print('vary slope: {}'.format(self.vary_slope))
+
+
         self.selection = selection
-        print('selection: {}'.format(self.selection))
+
         self.spinning = spinning
-        print('spinning: {}'.format(self.spinning))
+
         self.m1_nospin = m1_nospin
-        print('no m1 spin: {}'.format(self.m1_nospin))
+
         if self.spinning:
             self.max_jjkep = spin_params[0]
             self.spin_slope = spin_params[1]
+
+        if verbose:
+            print('vary slope: {}'.format(self.vary_slope))
+            print('selection: {}'.format(self.selection))
+            print('spinning: {}'.format(self.spinning))
+            print('no m1 spin: {}'.format(self.m1_nospin))
 
         if pop_type == "one":
 
@@ -452,6 +466,7 @@ class Population():
             if not self.spinning:
                 self.max_jjkep = params[3]
             self.beta = params[4]
+            # print(self.beta)
             if vary_slope:
                 self.slope = params[5]
             self.set_injection_spins(injection_set_bns)
@@ -535,12 +550,12 @@ class Population():
 
     def selection_norm(self, params):
         N = self.new_set.shape[0]
+        spin_likes = 1
+
         if self.spinning:
             spin_likes = self.pl_spin(self.new_set[:,3], self.max_jjkep, self.spin_slope)
             if not self.m1_nospin:
                 spin_likes *= self.pl_spin(self.new_set[:,2], self.max_jjkep, self.spin_slope)
-        else:
-            spin_likes = 1
 
         if self.pop_type == 'one':
             return (1/N) * np.sum(self.event_likelihood_one_samples(self.new_set, params, nomean=True)/(p_inject_bns(self.new_set[:,0], self.new_set[:,1])*spin_likes))
@@ -584,8 +599,8 @@ class Population():
                 if new_draw is not None:
                     population[i] = new_draw
                     i += 1
-            print(N/tot)
-            return population#, N/tot
+            # print(N/tot)
+            return population# , N/tot
 
     def set_injection_spins(self, injection_set):
         N = injection_set.shape[0]
@@ -768,7 +783,7 @@ class Population():
         if self.vary_slope:
             truncs = truncnormal_like(samples[:,0], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[3], samples[:,2]))
 
-            qlikes = like_m2(samples[:,1], np.min([samples[:,0], m_crit_slope(params[2], params[3], samples[:,3])], axis=0))
+            qlikes = like_m2(samples[:,1], np.min([samples[:,0], m_crit_slope(params[2], params[3], samples[:,3])], axis=0), beta = self.beta)
             if self.spinning:
                 # spin_likes = self.uniform_spin(samples[:,2], params[4]) * self.uniform_spin(samples[:,3], params[4])
                 spin_likes = self.pl_spin(samples[:,3], params[4], params[5])
@@ -779,7 +794,7 @@ class Population():
         else:
             truncs = truncnormal_like(samples[:,0], params[0], params[1], lower = 1, upper = m_crit(params[2], samples[:,2]))
 
-            qlikes = like_m2(samples[:,1], np.min([samples[:,0], m_crit(params[2], samples[:,3])], axis=0))
+            qlikes = like_m2(samples[:,1], np.min([samples[:,0], m_crit(params[2], samples[:,3])], axis=0), beta = self.beta)
             if self.spinning:
                 # spin_likes = self.uniform_spin(samples[:,2], params[3]) * self.uniform_spin(samples[:,3], params[3])
                 spin_likes = self.pl_spin(samples[:,3], params[3], params[4])
@@ -827,13 +842,14 @@ class Population():
 
         p_m1 = like_plmin(samples[:,0], params[3], params[4])
         q = samples[:,1]/samples[:,0]
-        p_q = like_beta(q, self.beta)
+        maxspin = self.max_jjkep
 
         if self.vary_slope:
 
             p_m2 = truncnormal_like(samples[:,1], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[5], samples[:,3]))
 
             if self.spinning:
+                maxspin = params[6]
                 # spin_likes = self.uniform_spin(samples[:,2], params[9]) * self.uniform_spin(samples[:,3], params[9])
                 spin_likes = self.pl_spin(samples[:,3], params[6], params[7])
                 if not self.m1_nospin:
@@ -844,6 +860,7 @@ class Population():
             p_m2 = truncnormal_like(samples[:,1], params[0], params[1], lower = 1, upper = m_crit(params[2], samples[:,3]))
 
             if self.spinning:
+                maxspin = params[5]
                 # spin_likes = self.uniform_spin(samples[:,2], params[8]) * self.uniform_spin(samples[:,3], params[8])
                 spin_likes = self.pl_spin(samples[:,3], params[5], params[6])
                 if not self.m1_nospin:
@@ -852,20 +869,23 @@ class Population():
                 spin_likes = 1
         if nomean:
             return p_m1*p_m2*spin_likes*p_q
+
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], maxspin), minBH = params[3])
         return np.mean(p_m1*p_m2*p_q*spin_likes)
 
     def event_likelihood_nsbh_samples(self, samples, params, nomean=False):
         # params: a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
         # REPLACE LIKELIHOODS!
+        p_m1 = like_plmin(samples[:,0], params[6], params[7])
+        q = samples[:,1]/samples[:,0]
+        maxspin = self.max_jjkep
+
         if self.vary_slope:
-            p_m1 = like_plmin(samples[:,0], params[6], params[7])
             p_m2 = two_truncnormal_like(samples[:,1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
                                       mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit_slope(params[5], params[8], samples[:,3]))
 
-            q = samples[:,1]/samples[:,0]
-            p_q = like_beta(q, self.beta)
-
             if self.spinning:
+                maxspin = params[9]
                 # spin_likes = self.uniform_spin(samples[:,2], params[9]) * self.uniform_spin(samples[:,3], params[9])
                 spin_likes = self.pl_spin(samples[:,3], params[9], params[10])
                 if not self.m1_nospin:
@@ -873,19 +893,21 @@ class Population():
             else:
                 spin_likes = 1
         else:
-            p_m1 = like_plmin(samples[:,0], params[6], params[7])
+
             p_m2 = two_truncnormal_like(samples[:,1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
                                       mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit(params[5], samples[:,3]))
-            q = samples[:,1]/samples[:,0]
-            p_q = like_beta(q, self.beta)
 
             if self.spinning:
+                maxspin = params[8]
                 # spin_likes = self.uniform_spin(samples[:,2], params[8]) * self.uniform_spin(samples[:,3], params[8])
                 spin_likes = self.pl_spin(samples[:,3], params[8], params[9])
                 if not self.m1_nospin:
                     spin_likes *= self.pl_spin(samples[:,2], params[8], params[9])
             else:
                 spin_likes = 1
+
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[5], maxspin), minBH = params[6])
+
         if nomean:
             return p_m1*p_m2*p_q*spin_likes
         return np.mean(p_m1*p_m2*p_q*spin_likes)
@@ -895,7 +917,7 @@ class Population():
 
         if self.vary_slope:
             truncs = truncnormal_like_one(i[0], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[3], i[2]))
-            qlikes = like_m2(i[1], min([i[0], m_crit_slope(params[2], params[3], i[3])]))
+            qlikes = like_m2(i[1], min([i[0], m_crit_slope(params[2], params[3], i[3])]), beta = self.beta)
             if self.spinning:
                 spin_likes = self.pl_spin_one(i[3], params[4], params[5])
                 if not self.m1_nospin:
@@ -904,7 +926,7 @@ class Population():
                 spin_likes = 1
         else:
             truncs = truncnormal_like_one(i[0], params[0], params[1], lower = 1, upper = m_crit(params[2], i[2]))
-            qlikes = like_m2(i[1], min([i[0], m_crit(params[2], i[3])]))
+            qlikes = like_m2(i[1], min([i[0], m_crit(params[2], i[3])]), beta = self.beta)
             if self.spinning:
                 spin_likes = self.pl_spin_one(i[3], params[3], params[4])
                 if not self.m1_nospin:
@@ -914,7 +936,7 @@ class Population():
         #print(qlikes)
         return np.mean(truncs*qlikes*spin_likes)
 
-    def event_likelihood_one_vec(self, samples, params, mu):
+    def event_likelihood_one_vec(self, samples, params, mu, nomean=True):
         i = samples.squeeze()
         if self.vary_slope:
             truncs = truncnormal_like(i[:,0], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[3], i[:,2]))
@@ -936,6 +958,8 @@ class Population():
             else:
                 spin_likes = 1
         #/print(qlikes)
+        if nomean:
+            return truncs*qlikes*spin_likes
         return np.sum(np.log(truncs*qlikes*spin_likes/(mu)))
 
     def event_likelihood_two_single(self, samples, params):
@@ -1024,16 +1048,19 @@ class Population():
 
     def event_likelihood_nsbh_vec(self, samples, params, mu):
         i = samples.squeeze()
-        # params: a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
-        # REPLACE LIKELIHOODS!
+        p_m1 = like_plmin(i[:,0], params[6], params[7])
+        q = i[:,1]/i[:,0]
+        maxspin = self.max_jjkep
+
+
         if self.vary_slope:
-            p_m1 = like_plmin(i[:,0], params[6], params[7])
+
             p_m2 = two_truncnormal_like(i[:,1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
                                       mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit_slope(params[5], params[8], i[:,3]))
 
-            q = i[:,1]/i[:,0]
-            p_q = like_beta(q, self.beta)
+
             if self.spinning:
+                maxspin = params[9]
                 spin_likes = self.pl_spin(i[:,3], params[9], params[10])
 
                 if not self.m1_nospin:
@@ -1042,19 +1069,21 @@ class Population():
                 spin_likes = 1
 
         else:
-            p_m1 = like_plmin(i[:,0], params[6], params[7])
+
             # print(p_m1)
             p_m2 = two_truncnormal_like(i[:,1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
                                       mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit(params[5], i[:,3]))
             q = i[:,1]/i[:,0]
-            p_q = like_beta(q, self.beta)
+            p_q = like_beta_nsbh(q, self.beta)
             if self.spinning:
+                maxspin = params[8]
                 spin_likes = self.pl_spin(i[:,3], params[8], params[9])
                 if not self.m1_nospin:
                     spin_likes *= self.pl_spin(i[:,2], params[8], params[9])
             else:
                 spin_likes = 1
             # print(spin_likes)
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[5], maxspin), minBH = params[6])
         return np.sum(np.log(p_m1*p_m2*p_q*spin_likes/(mu)))
 
     def event_likelihood_nsbh_one_single(self, samples, params):
@@ -1097,29 +1126,37 @@ class Population():
         i = samples.squeeze()
         p_m1 = like_plmin(i[:,0], params[3], params[4])
         q = i[:,1]/i[:,0]
-        p_q = like_beta(q, self.beta)
+
+        maxspin = 1
 
         if self.vary_slope:
 
             p_m2 = truncnormal_like(i[:,1], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[5], i[:,3]))
 
             if self.spinning:
+                maxspin = params[6]
                 spin_likes = self.pl_spin(i[:,3], params[6], params[7])
 
                 if not self.m1_nospin:
                     spin_likes *= self.pl_spin(i[:,2], params[6], params[7])
             else:
+                maxspin = self.max_jjkep
                 spin_likes = 1
 
         else:
             p_m2 = truncnormal_like(i[:,1], params[0], params[1], lower = 1, upper = m_crit(params[2], i[:,3]))
             # print(m_crit(params[2], i[3]))
             if self.spinning:
+                maxspin = params[5]
                 spin_likes = self.pl_spin(i[:,3], params[5], params[6])
                 if not self.m1_nospin:
                     spin_likes *= self.pl_spin(i[:,2], params[5], params[6])
             else:
+                maxspin = self.max_jjkep
                 spin_likes = 1
+
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], maxspin), minBH = params[3])
+
         return np.sum(np.log(p_m1*p_m2*p_q*spin_likes/(mu))) #*spin_likes #p_m1*
 
 
