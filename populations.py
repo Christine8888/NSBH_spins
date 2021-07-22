@@ -674,6 +674,7 @@ class Population():
             test_chi_2 = pop[0,3]
 
         elif self.pop_type == "nsbh_one":
+            print('here')
             if self.vary_slope:
                 params = [self.mu, self.sigma, self.m_TOV, self.max_jjkep, self.beta, \
                       self.bh_min, self.bh_slope, self.slope]
@@ -686,7 +687,7 @@ class Population():
             else:
                 pop = generate_NSBH(1, params, nsbh_only = True, vary_slope = self.vary_slope, pop_type = 'nsbh_one',)
 
-            # print(pop)
+            print(pop)
             test_m_1 = pop[0,0]
             test_m_2 = pop[0,1]
             test_chi_1 = pop[0,2]
