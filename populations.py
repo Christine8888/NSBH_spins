@@ -1442,7 +1442,7 @@ class Population():
             with Pool() as pool:
                 # print('pooling')
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, pool=pool, args=([samples]))
-                sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True) # 
+                sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True) #
                 posterior_samples = sampler.get_chain(discard = 100, flat=True)
                 log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
                 pool.close()
@@ -1570,7 +1570,7 @@ def fix_params_one(fixed, vary_slope, spinning):
         count +=2
 
     ranges = np.zeros((count, 2))
-    pscale = np.zeros(count) + 0.00
+    pscale = np.zeros(count) + 0.01
 
     if "mu" in fixed:
         if isinstance(fixed["mu"], list):
@@ -1675,7 +1675,7 @@ def fix_params_two(fixed, vary_slope, spinning):
         count +=2
 
     ranges = np.zeros((count, 2))
-    pscale = np.zeros(count) + 0.00
+    pscale = np.zeros(count) + 0.01
 
     if "a" in fixed:
         if isinstance(fixed["a"], list):
@@ -1814,7 +1814,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         count +=2
 
     ranges = np.zeros((count, 2))
-    pscale = np.zeros(count) + 0.00
+    pscale = np.zeros(count) + 0.01
 
     if "a" in fixed:
         if isinstance(fixed["a"], list):
