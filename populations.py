@@ -1215,7 +1215,7 @@ class Population():
 
         return result
 
-    def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False):
+    def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False, skip_initial_state_check = False):
         """
         Perform inference on samples.
 
@@ -1442,7 +1442,7 @@ class Population():
             with Pool() as pool:
                 # print('pooling')
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, pool=pool, args=([samples]))
-                sampler.run_mcmc(pos, steps, progress=True) # , skip_initial_state_check=True
+                sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True) # 
                 posterior_samples = sampler.get_chain(discard = 100, flat=True)
                 log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
                 pool.close()
@@ -1450,7 +1450,7 @@ class Population():
         else:
             sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, args=([samples]))
 
-            sampler.run_mcmc(pos, steps, progress=True) #, skip_initial_state_check=True
+            sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True) #
             posterior_samples = sampler.get_chain(discard = 100, flat=True)
             log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
 
