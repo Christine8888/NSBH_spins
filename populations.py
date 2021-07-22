@@ -1576,6 +1576,7 @@ def fix_params_one(fixed, vary_slope, spinning):
         if isinstance(fixed["mu"], list):
             list_ = fixed["mu"]
             ranges[0] = [list_[1], list_[2]]
+            pscale[0] = 0.1
         else:
             ranges[0] = [fixed["mu"]-0.01, fixed["mu"]+0.01]
     else:
@@ -1586,6 +1587,7 @@ def fix_params_one(fixed, vary_slope, spinning):
         if isinstance(fixed["sigma"], list):
             list_ = fixed["sigma"]
             ranges[1] = [list_[1], list_[2]]
+            pscale[1] = 0.1
         else:
             ranges[1] = [fixed["sigma"]-0.01, fixed["sigma"]+0.01]
     else:
@@ -1595,7 +1597,8 @@ def fix_params_one(fixed, vary_slope, spinning):
     if "m_TOV" in fixed:
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
-            ranges[1] = [list_[1], list_[2]]
+            ranges[2] = [list_[1], list_[2]]
+            pscale[2] = 0.1
         else:
             ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
@@ -1607,6 +1610,7 @@ def fix_params_one(fixed, vary_slope, spinning):
             if isinstance(fixed["slope"], list):
                 list_ = fixed["slope"]
                 ranges[3] = [list_[1], list_[2]]
+                pscale[3] = 0.05
             else:
                 ranges[3] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
@@ -1618,6 +1622,7 @@ def fix_params_one(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[4] = [list_[1], list_[2]]
+                    pscale[4] = 0.05
                 else:
                     ranges[4] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
@@ -1628,6 +1633,7 @@ def fix_params_one(fixed, vary_slope, spinning):
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[5] = [list_[1], list_[2]]
+                    pscale[5] = 0.2
                 else:
                     ranges[5] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
@@ -1640,6 +1646,7 @@ def fix_params_one(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[3] = [list_[1], list_[2]]
+                    pscale[3] = 0.05
                 else:
                     ranges[3] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
@@ -1650,6 +1657,7 @@ def fix_params_one(fixed, vary_slope, spinning):
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[4] = [list_[1], list_[2]]
+                    pscale[4] = 0.2
                 else:
                     ranges[4] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
@@ -1673,6 +1681,7 @@ def fix_params_two(fixed, vary_slope, spinning):
         if isinstance(fixed["a"], list):
             list_ = fixed["a"]
             ranges[0] = [list_[1], list_[2]]
+            pscale[0] = 0.05
         else:
             ranges[0] = [fixed["a"]-0.01, fixed["a"]+0.01]
     else:
@@ -1683,16 +1692,19 @@ def fix_params_two(fixed, vary_slope, spinning):
         if isinstance(fixed["mu_1"], list):
             list_ = fixed["mu_1"]
             ranges[1] = [list_[1], list_[2]]
+            pscale[1] = 0.1
         else:
             ranges[1] = [fixed["mu_1"]-0.01, fixed["mu_1"]+0.01]
     else:
         ranges[1] = [1, 2]
+
         pscale[1] = 0.1
 
     if "sigma_1" in fixed:
         if isinstance(fixed["sigma_1"], list):
             list_ = fixed["sigma_1"]
             ranges[2] = [list_[1], list_[2]]
+            pscale[2] = 0.05
         else:
             ranges[2] = [fixed["sigma_1"]-0.01, fixed["sigma_1"]+0.01]
     else:
@@ -1703,6 +1715,7 @@ def fix_params_two(fixed, vary_slope, spinning):
         if isinstance(fixed["mu_2"], list):
             list_ = fixed["mu_2"]
             ranges[3] = [list_[1], list_[2]]
+            pscale[3] = 0.1
         else:
             ranges[3] = [fixed["mu_2"]-0.01, fixed["mu_2"]+0.01]
     else:
@@ -1713,6 +1726,7 @@ def fix_params_two(fixed, vary_slope, spinning):
         if isinstance(fixed["sigma_2"], list):
             list_ = fixed["sigma_2"]
             ranges[4] = [list_[1], list_[2]]
+            pscale[4] = 0.05
         else:
             ranges[4] = [fixed["sigma_2"]-0.01, fixed["sigma_2"]+0.01]
     else:
@@ -1723,6 +1737,7 @@ def fix_params_two(fixed, vary_slope, spinning):
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
             ranges[5] = [list_[1], list_[2]]
+            pscale[5] = 0.1
         else:
             ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
@@ -1734,6 +1749,7 @@ def fix_params_two(fixed, vary_slope, spinning):
             if isinstance(fixed["slope"], list):
                 list_ = fixed["slope"]
                 ranges[6] = [list_[1], list_[2]]
+                pscale[6] = 0.05
             else:
                 ranges[6] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
@@ -1745,6 +1761,7 @@ def fix_params_two(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[7] = [list_[1], list_[2]]
+                    pscale[7] = 0.05
                 else:
                     ranges[7] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
@@ -1755,6 +1772,7 @@ def fix_params_two(fixed, vary_slope, spinning):
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[8] = [list_[1], list_[2]]
+                    pscale[8] = 0.2
                 else:
                     ranges[8] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
@@ -1767,6 +1785,7 @@ def fix_params_two(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[6] = [list_[1], list_[2]]
+                    pscale[6] = 0.05
                 else:
                     ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
@@ -1777,6 +1796,7 @@ def fix_params_two(fixed, vary_slope, spinning):
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[7] = [list_[1], list_[2]]
+                    pscale[7] = 0.2
                 else:
                     ranges[7] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
@@ -1800,6 +1820,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["a"], list):
             list_ = fixed["a"]
             ranges[0] = [list_[1], list_[2]]
+            pscale[0] = 0.05
         else:
             ranges[0] = [fixed["a"]-0.01, fixed["a"]+0.01]
     else:
@@ -1810,6 +1831,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["mu_1"], list):
             list_ = fixed["mu_1"]
             ranges[1] = [list_[1], list_[2]]
+            pscale[1] = 0.1
         else:
             ranges[1] = [fixed["mu_1"]-0.01, fixed["mu_1"]+0.01]
     else:
@@ -1820,6 +1842,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["sigma_1"], list):
             list_ = fixed["sigma_1"]
             ranges[2] = [list_[1], list_[2]]
+            pscale[2] = 0.05
         else:
             ranges[2] = [fixed["sigma_1"]-0.01, fixed["sigma_1"]+0.01]
     else:
@@ -1830,6 +1853,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["mu_2"], list):
             list_ = fixed["mu_2"]
             ranges[3] = [list_[1], list_[2]]
+            pscale[3] = 0.1
         else:
             ranges[3] = [fixed["mu_2"]-0.01, fixed["mu_2"]+0.01]
     else:
@@ -1840,6 +1864,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["sigma_2"], list):
             list_ = fixed["sigma_2"]
             ranges[4] = [list_[1], list_[2]]
+            pscale[4] = 0.05
         else:
             ranges[4] = [fixed["sigma_2"]-0.01, fixed["sigma_2"]+0.01]
     else:
@@ -1850,6 +1875,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
             ranges[5] = [list_[1], list_[2]]
+            pscale[5] = 0.1
         else:
             ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
@@ -1860,6 +1886,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["bh_min"], list):
             list_ = fixed["bh_min"]
             ranges[6] = [list_[1], list_[2]]
+            pscale[6] = 0.2
         else:
             ranges[6] = [fixed["bh_min"]-0.01, fixed["bh_min"]+0.01]
     else:
@@ -1870,6 +1897,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["bh_slope"], list):
             list_ = fixed["bh_slope"]
             ranges[7] = [list_[1], list_[2]]
+            pscale[7] = 0.2
         else:
             ranges[7] = [fixed["bh_slope"]-0.01, fixed["bh_slope"]+0.01]
     else:
@@ -1881,6 +1909,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
             if isinstance(fixed["slope"], list):
                 list_ = fixed["slope"]
                 ranges[8] = [list_[1], list_[2]]
+                pscale[8] = 0.05
             else:
                 ranges[8] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
@@ -1892,6 +1921,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[9] = [list_[1], list_[2]]
+                    pscale[9] = 0.05
                 else:
                     ranges[9] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
@@ -1902,6 +1932,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[10] = [list_[1], list_[2]]
+                    pscale[10] = 0.2
                 else:
                     ranges[10] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
@@ -1914,6 +1945,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[8] = [list_[1], list_[2]]
+                    pscale[8] = 0.05
                 else:
                     ranges[8] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
@@ -1924,6 +1956,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[9] = [list_[1], list_[2]]
+                    pscale[9] = 0.2
                 else:
                     ranges[9] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
@@ -1948,6 +1981,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
         if isinstance(fixed["mu"], list):
             list_ = fixed["mu"]
             ranges[0] = [list_[1], list_[2]]
+            pscale[0] = 0.1
         else:
             ranges[0] = [fixed["mu"]-0.01, fixed["mu"]+0.01]
     else:
@@ -1958,6 +1992,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
         if isinstance(fixed["sigma"], list):
             list_ = fixed["sigma"]
             ranges[1] = [list_[1], list_[2]]
+            pscale[1] = 0.1
         else:
             ranges[1] = [fixed["sigma"]-0.01, fixed["sigma"]+0.01]
     else:
@@ -1967,7 +2002,8 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
     if "m_TOV" in fixed:
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
-            ranges[1] = [list_[1], list_[2]]
+            ranges[2] = [list_[1], list_[2]]
+            pscale[2] = 0.1
         else:
             ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
@@ -1978,6 +2014,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
         if isinstance(fixed["bh_min"], list):
             list_ = fixed["bh_min"]
             ranges[3] = [list_[1], list_[2]]
+            pscale[3] = 0.2
         else:
             ranges[3] = [fixed["bh_min"]-0.01, fixed["bh_min"]+0.01]
     else:
@@ -1988,6 +2025,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
         if isinstance(fixed["bh_slope"], list):
             list_ = fixed["bh_slope"]
             ranges[4] = [list_[1], list_[2]]
+            pscale[4] = 0.2
         else:
             ranges[4] = [fixed["bh_slope"]-0.01, fixed["bh_slope"]+0.01]
     else:
@@ -1999,6 +2037,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
             if isinstance(fixed["slope"], list):
                 list_ = fixed["slope"]
                 ranges[5] = [list_[1], list_[2]]
+                pscale[5] = 0.05
             else:
                 ranges[5] = [fixed["slope"]-0.01, fixed["slope"]+0.01]
         else:
@@ -2009,16 +2048,19 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[6] = [list_[1], list_[2]]
+                    pscale[6] = 0.05
                 else:
                     ranges[6] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
                 ranges[6] = [0, 1.2]
+
                 pscale[6] = 0.05
 
             if "spin_slope" in fixed:
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[7] = [list_[1], list_[2]]
+                    pscale[7] = 0.2
                 else:
                     ranges[7] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
@@ -2031,6 +2073,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
                 if isinstance(fixed["max_jjkep"], list):
                     list_ = fixed["max_jjkep"]
                     ranges[5] = [list_[1], list_[2]]
+                    pscale[5] = 0.05
                 else:
                     ranges[5] = [fixed["max_jjkep"]-0.01, fixed["max_jjkep"]+0.01]
             else:
@@ -2041,6 +2084,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
                 if isinstance(fixed["spin_slope"], list):
                     list_ = fixed["spin_slope"]
                     ranges[6] = [list_[1], list_[2]]
+                    pscale[6] = 0.2
                 else:
                     ranges[6] = [fixed["spin_slope"]-0.01, fixed["spin_slope"]+0.01]
             else:
