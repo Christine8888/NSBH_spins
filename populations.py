@@ -674,7 +674,7 @@ class Population():
             test_chi_2 = pop[0,3]
 
         elif self.pop_type == "nsbh_one":
-            print('here')
+            # print('here')
             if self.vary_slope:
                 params = [self.mu, self.sigma, self.m_TOV, self.max_jjkep, self.beta, \
                       self.bh_min, self.bh_slope, self.slope]
@@ -687,7 +687,7 @@ class Population():
             else:
                 pop = generate_NSBH(1, params, nsbh_only = True, vary_slope = self.vary_slope, pop_type = 'nsbh_one',)
 
-            print(pop)
+            # print(pop)
             test_m_1 = pop[0,0]
             test_m_2 = pop[0,1]
             test_chi_1 = pop[0,2]
@@ -868,10 +868,12 @@ class Population():
                     spin_likes *= self.pl_spin(samples[:,2], params[5], params[6])
             else:
                 spin_likes = 1
+
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], maxspin), minBH = params[3])
         if nomean:
             return p_m1*p_m2*spin_likes*p_q
 
-        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], maxspin), minBH = params[3])
+
         return np.mean(p_m1*p_m2*p_q*spin_likes)
 
     def event_likelihood_nsbh_samples(self, samples, params, nomean=False):
