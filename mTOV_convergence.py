@@ -17,9 +17,9 @@ nsbh_population = p.Population([1.4, 0.5, 2, 1, 3, 5, 2], 'nsbh_one', vary_slope
 nsbh_population.set_injection_spins(p.injection_set)
 
 pop_samples = nsbh_population.get_population(10, True)
-
+fixed = {"mu":1.4, "sigma":0.5, "bh_min": 5, "bh_slope": 2, "max_jjkep":1, "spin_slope":0}
 for i in range(5):
-    samples, likes = nsbh_population.infer(pop_samples, 2000, mult=True)
+    samples, likes = nsbh_population.infer(pop_samples, 2000, fixed=fixed, mult=True)
     np.savetxt('./mTOV_2_run_{}.txt'.format(str(event_counts[i])), samples)
     np.savetxt('./mTOV_2_run_{}.txt'.format(str(event_counts[i])), likes)
 
