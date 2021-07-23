@@ -310,7 +310,7 @@ def like_beta_nsbh(x, beta, maxNS = m_crit(2, 1), minBH = 5):
     # beta = beta+1
     result = np.zeros(x.shape[0])
     mask = np.logical_and(x<=1, x>0)
-    result[mask] = x[mask]**beta*(beta+1)/((maxNS/minBH)**(beta+1))
+    result[mask] = x[mask]**beta*(beta+1)#/((maxNS/minBH)**(beta+1))
     return result
 
 def like_beta(x, beta):
