@@ -11,19 +11,28 @@ import astropy.cosmology as cosmo
 import astropy.units as u
 import populations as p
 
-event_counts = [10, 20, 30, 40, 50]
-p.set_detector("Design")
-nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, 2.2, 1, 3, 5, 2], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[1.0, 0.0])
+event_counts = [30, 60, 90, 120, 150]
+
+mtov_True = 2
+detector = "APlus"
+p.set_detector(detector)
+max_jjkep = 1.0
+spin_slope = 0.0
+bh_min = 5
+bh_slope = 2
+
+
+nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, mtov_True, 1, 3, bh_min, bh_slope], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
 nsbh_population.set_injection_spins(p.injection_set)
 
 pop_samples = nsbh_population.get_population(10, True)
 
-fixed = {"a":0.63, "mu_1": 1.35, "sigma_1":0.07, "mu_2": 1.85, "sigma_2":0.35, "m_TOV":[2.2,1.8,3.2], "bh_min": 5, "bh_slope": 2, "max_jjkep":1, "spin_slope":0}
+fixed = {"a":0.63, "mu_1": 1.35, "sigma_1":0.07, "mu_2": 1.85, "sigma_2":0.35, "m_TOV":[mtov_True,1.7,3.2], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 for i in range(5):
     samples, likes = nsbh_population.infer(pop_samples, 2000, mult=True, save_to = None,fixed=fixed)
-    np.savetxt('./mTOV_convergence/mTOV_2_run_{}_2component.txt'.format(str(event_counts[i])), samples)
-    np.savetxt('./mTOV_convergence/mTOV_2_run_{}_2component_likes.txt'.format(str(event_counts[i])), likes)
+    np.savetxt('./mTOV_convergence/{}_mTOV_2_run_{}_2component.txt'.format(detector, str(event_counts[i])), samples)
+    np.savetxt('./mTOV_convergence/{}_mTOV_2_run_{}_2component_likes.txt'.format(detector, str(event_counts[i])), likes)
 
     new_samples = nsbh_population.get_population(10, True)
     pop_samples = np.vstack([pop_samples, new_samples])
