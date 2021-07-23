@@ -10,16 +10,30 @@ import snr_calculation as s
 import astropy.cosmology as cosmo
 import astropy.units as u
 import populations as p
+import argparse
 
-event_counts = [30, 60, 90, 120, 150]
+parser = argparse.ArgumentParser()
+parser.add_argument("--detector", type=str, default="Design")
+parser.add_argument("--event_min", type=int, default=10)
+parser.add_argument("--event_max", type=int, default=50)
+parser.add_argument("--n_events", type=int, default=5)
+parser.add_argument("--mtov_true", type=float, default=2.0)
+parser.add_argument("--max_jjkep", type=float, default=1.0)
+parser.add_argument("--spin_slope", type=float, default=0.0)
+parser.add_argument("--bh_min", type=float, default=5.0)
+parser.add_argument("--bh_slope", type=float, default=2.0)
 
-mtov_True = 2
-detector = "APlus"
+args = parser.parse_args()
+
+event_counts = np.linspace(args.event_min, args.event_max, args.n_events, dtype='int')
+
+mtov_True = args.mtov_true
+detector = args.detector
 p.set_detector(detector)
-max_jjkep = 1.0
-spin_slope = 0.0
-bh_min = 5
-bh_slope = 2
+max_jjkep = args.max_jjkep
+spin_slope = args.spin_slope
+bh_min = args.bh_min
+bh_slope = args.bh_slope
 
 
 nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, mtov_True, 1, 3, bh_min, bh_slope], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
