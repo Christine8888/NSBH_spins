@@ -349,7 +349,7 @@ def like_beta_nsbh(x, beta, maxNS = m_crit(2, 1), minBH = 5):
     # beta = beta+1
     result = np.zeros(x.shape[0])
     mask = np.logical_and(x<=1, x>0)
-    result[mask] = x[mask]**beta*(beta+1)/((maxNS/minBH)**(beta+1))
+    result[mask] = (x**beta*(beta+1)/((maxNS/minBH)**(beta+1)))[mask]
     return result
 
 def like_beta(x, beta):
@@ -928,7 +928,7 @@ class Population():
             else:
                 spin_likes = 1
 
-        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], maxspin), minBH = params[3])
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], samples[:,3]), minBH = params[3])
         if nomean:
             return p_m1*p_m2*spin_likes*p_q
 
@@ -968,7 +968,7 @@ class Population():
             else:
                 spin_likes = 1
 
-        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[5], maxspin), minBH = params[6])
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[5], samples[:,3]), minBH = params[6])
 
         if nomean:
             return p_m1*p_m2*p_q*spin_likes
@@ -1145,7 +1145,8 @@ class Population():
             else:
                 spin_likes = 1
             # print(spin_likes)
-        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[5], maxspin), minBH = params[6])
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[5], i[:,3]), minBH = params[6])
+        print(m_crit(params[5], i[:,3]))
         return np.sum(np.log(p_m1*p_m2*p_q*spin_likes/(mu)))
 
     def event_likelihood_nsbh_one_single(self, samples, params):
@@ -1217,7 +1218,7 @@ class Population():
                 maxspin = self.max_jjkep
                 spin_likes = 1
 
-        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], maxspin), minBH = params[3])
+        p_q = like_beta_nsbh(q, self.beta, maxNS = m_crit(params[2], i[:,3]), minBH = params[3])
 
         return np.sum(np.log(p_m1*p_m2*p_q*spin_likes/(mu))) #*spin_likes #p_m1*
 
