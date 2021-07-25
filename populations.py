@@ -235,6 +235,35 @@ def get_rho(N, index=4, rhomin = 10):
     r = np.random.rand(N)
     return rhomin * (1-r) ** (-1/(index-1))
 
+def psi_0(m_1, m_2):
+    return 3/(128*chirp_mass(m_1,m_2)**(5/3)*math.pi**(5/3))
+
+def psi_0_sigma(m_1, m_2, rho):
+    return 0.0046 * psi_0(m_1, m_2)/rho
+
+def dm(m_1, m_2):
+    return (m_1 - m_2)/(m_1 + m_2)
+
+def chia(s_1, s_2):
+    return (s_1 - s_2)/2
+
+def psi_beta(m_1, m_2, s_1, s_2):
+    return (1/3) * ((113-76*(mass_ratio(m_1, m_2)))/4 * chieff(m_1, m_2, s_1, s_2) + (76/4)*dm(m_1, m_2)*mass_ratio(m_1, m_2)*chia(s_1, s_2))
+
+def psi_2(m_1, m_2):
+    eta = mass_ratio(m_1, m_2)
+    return (5/(96*chirp_mass(m_1, m_2)*math.pi*eta**(2/5))) * ((743/336)+(11*eta/4))
+
+def psi_2_sigma(m_1, m_2, rho):
+    return 0.2341 * psi_2(m_1, m_2)/rho
+
+def psi_3(m_1, m_2, s_1, s_2):
+    return 3*(4*psi_beta(m_1, m_2, s_1, s_2) - 16*math.pi)/(128 * chirp_mass(m_1, m_2)**(2/3) * math.pi**(2/3) * mass_ratio(m_1, m_2)**(3/5))
+
+def psi_3_sigma(m_1, m_2, s_1, s_2, rho):
+    return -0.1293 * psi_3(m_1, m_2, s_1, s_2)/rho
+
+
 def chirp_mass(m_1, m_2):
     return (m_1*m_2)**(3/5)/((m_1+m_2)**(1/5))
 
@@ -278,6 +307,16 @@ def jacobian(m_1, m_2):
     pb /= (m_1 + m_2)**(21/5)
 
     return pa - pb
+
+def jacobian_2(m_1, m_2):
+    pa = chirp_mass(m_1, m_2)
+    pa = 5 * (pa**(5/3))
+
+    pb = (55725*m_1**4 + 35734*(m_1**3)*m_2 - 24434*(m_1**2)*(m_2**2) + 16934*(m_1**2)*(m_2**3) - 83959*(m_2**4))
+
+    pc = 264241152 * (m_1**5) * (m_2**4) * (m_1+m_2)**2 * math.pi**(10/3)
+
+    return pa*pb/pc
 
 def pl_cdf(x, x_min, alpha):
     return 1-(x/x_min)**(-alpha+1)
@@ -704,44 +743,64 @@ class Population():
 
         else:
             test_rho = get_rho(1, 4, 12) # should replace w/ a distance
+
+        test_rho = np.sqrt(test_rho**2 + test_rho**2)
+
         # print(test_rho)
-        test_mchirp = chirp_mass(test_m_1, test_m_2)
-        test_mchirp_sigma = float(chirp_mass_sigma(test_m_1, test_m_2, test_rho))
+        #test_mchirp = chirp_mass(test_m_1, test_m_2)
+        #test_mchirp_sigma = float(chirp_mass_sigma(test_m_1, test_m_2, test_rho))
+        #test_mchirp += float(np.random.randn()*test_mchirp_sigma)
+
+        #test_ratio = mass_ratio(test_m_1, test_m_2)
+        #test_ratio_sigma = float(mass_ratio_sigma(test_m_1, test_m_2,test_rho))
+        #test_ratio += float(np.random.randn()*test_ratio_sigma)
+
+        #test_chieff = chieff(test_m_1, test_m_2, test_chi_1, test_chi_2)
+        #test_chieff_sigma = float(chieff_sigma(test_rho))
+        #test_chieff += float(np.random.randn()*test_chieff_sigma)
+
+
+        # test_rho = np.array([80])
+        test_mchirp = psi_0(test_m_1, test_m_2)
+        test_mchirp_sigma = float(psi_0_sigma(test_m_1, test_m_2, test_rho))
         test_mchirp += float(np.random.randn()*test_mchirp_sigma)
 
-        test_ratio = mass_ratio(test_m_1, test_m_2)
-        test_ratio_sigma = float(mass_ratio_sigma(test_m_1, test_m_2,test_rho))
+        test_ratio = psi_2(test_m_1, test_m_2)
+        test_ratio_sigma = float(psi_2_sigma(test_m_1, test_m_2,test_rho))
         test_ratio += float(np.random.randn()*test_ratio_sigma)
 
-        test_chieff = chieff(test_m_1, test_m_2, test_chi_1, test_chi_2)
-        test_chieff_sigma = float(chieff_sigma(test_rho))
+        test_chieff = psi_3(test_m_1, test_m_2, test_chi_1, test_chi_2)
+        test_chieff_sigma = float(psi_3_sigma(test_m_1, test_m_2, test_chi_1, test_chi_2, test_rho))
         test_chieff += float(np.random.randn()*test_chieff_sigma)
 
+
         p0 = [test_m_1, test_m_2, test_chi_1, test_chi_2]
-        # print(p0)
+        print(p0, test_rho)
         if return_p0:
             return p0
 
         if self.m1_nospin:
             p0 = [test_m_1, test_m_2, test_chi_1, test_chi_2]
-            pscale = [0.1, 0.1, 0.00, 0.05]
+            pscale = [0.01, 0.01, 0.001, 0.05]
         else:
-            pscale = [0.1, 0.1, 0.05, 0.05]
+            pscale = [0.01, 0.01, 0.001, 0.05]
 
         pscale /= (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
-        print(pscale, pos)
+        # print(pscale, pos)
         # print(pos)
         nwalkers, ndim = pos.shape
 
         def loglike_one(params, m_chirp, m_chirp_sigma, m_ratio, m_ratio_sigma, chi_eff, chi_eff_sigma):
             #print(params)
             # params: m_1, m_2, chi_1, chi_2
-            like_mchirp = st.norm.pdf(chirp_mass(params[0], params[1]), loc=m_chirp, scale=m_chirp_sigma)
-            like_ratio = st.norm.pdf(mass_ratio(params[0], params[1]), loc=m_ratio, scale=m_ratio_sigma)
-            like_chieff = st.norm.pdf(chieff(params[0], params[1], params[2], params[3]), loc=chi_eff, scale=chi_eff_sigma)
-            return np.log(like_mchirp) + np.log(like_ratio) + np.log(like_chieff) + np.log(jacobian(params[0], params[1]))
+            like_mchirp = st.norm.pdf(psi_0(params[0], params[1]), loc=m_chirp, scale=m_chirp_sigma)
+            like_ratio = st.norm.pdf(psi_2(params[0], params[1]), loc=m_ratio, scale=m_ratio_sigma)
+            like_chieff = st.norm.pdf(psi_3(params[0], params[1], params[2], params[3]), loc=chi_eff, scale=chi_eff_sigma)
+            like = np.log(like_mchirp) + np.log(like_ratio) + np.log(like_chieff) + np.log(jacobian_2(params[0], params[1]))
+
+            return like
 
 
         def logpost_one(params, m_chirp, m_chirp_sigma, mass_ratio, mass_ratio_sigma, chi_eff, chi_eff_sigma):
