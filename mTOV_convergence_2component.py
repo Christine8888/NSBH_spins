@@ -39,15 +39,15 @@ bh_slope = args.bh_slope
 nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, mtov_True, 1, 3, bh_min, bh_slope], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
 nsbh_population.set_injection_spins(p.injection_set)
 
-pop_samples = nsbh_population.get_population(10, True)
+pop_samples = nsbh_population.get_population(event_counts[0], True)
 
 fixed = {"a":0.63, "mu_1": 1.35, "sigma_1":0.07, "mu_2": 1.85, "sigma_2":0.35, "m_TOV":[mtov_True,1.7,3.2], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 for i in range(5):
     samples, likes = nsbh_population.infer(pop_samples, 2000, mult=True, save_to = None,fixed=fixed)
-    np.savetxt('./mTOV_convergence/{}_mTOV_2_run_{}_2component.txt'.format(detector, str(event_counts[i])), samples)
-    np.savetxt('./mTOV_convergence/{}_mTOV_2_run_{}_2component_likes.txt'.format(detector, str(event_counts[i])), likes)
-
-    new_samples = nsbh_population.get_population(10, True)
-    pop_samples = np.vstack([pop_samples, new_samples])
+    np.savetxt('../mTOV_convergence/{}_mTOV_{}_run_{}_2component.txt'.format(detector, mtov_True, str(event_counts[i])), samples)
+    np.savetxt('../mTOV_convergence/{}_mTOV_{}_run_{}_2component_likes.txt'.format(detector, mtov_True, str(event_counts[i])), likes)
+    if i != 4:
+    	new_samples = nsbh_population.get_population(event_counts[i+1]-event_counts[i], True)
+    	pop_samples = np.vstack([pop_samples, new_samples])
     print(pop_samples.shape)
