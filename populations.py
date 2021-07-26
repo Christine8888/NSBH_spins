@@ -744,7 +744,7 @@ class Population():
         else:
             test_rho = get_rho(1, 4, 12) # should replace w/ a distance
 
-        test_rho = np.sqrt(test_rho**2 + test_rho**2)
+        test_rho *= 1.5
 
         # print(test_rho)
         #test_mchirp = chirp_mass(test_m_1, test_m_2)
