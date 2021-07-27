@@ -783,7 +783,7 @@ class Population():
             p0 = [test_m_1, test_m_2, test_chi_1, test_chi_2]
             pscale = [0.01, 0.01, 0.001, 0.05]
         else:
-            pscale = [0.01, 0.01, 0.001, 0.05]
+            pscale = [0.01, 0.01, 0.05, 0.05]
 
         pscale /= (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
