@@ -524,6 +524,7 @@ class Population():
             if vary_slope:
                 self.slope = params[8]
             self.set_injection_spins(injection_set_bns)
+
         elif pop_type == "nsbh_one":
 
             self.mu = params[0]
