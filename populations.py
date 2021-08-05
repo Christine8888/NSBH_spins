@@ -218,8 +218,7 @@ def m_crit(m_TOV, j_jkep, ignore_spin=False):
     return (1 + a2*(j_jkep)**2 + a4*(j_jkep)**4)*m_TOV
 
 def m_crit_slope(m_TOV, slope, j_jkep):
-    return m_TOV + slope*j_jkep
-    # slope * max_jjkep = amount above mTOV
+    return m_TOV*(1 + slope*j_jkep)
 
 def like_m2(m_2, m_1, m_min=1, beta=3):
     like = m_2**beta * (beta+1)
