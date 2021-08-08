@@ -838,7 +838,7 @@ class Population():
             return -np.inf
 
         sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, args=(test_mchirp, test_mchirp_sigma, test_ratio, test_ratio_sigma, test_chieff, test_chieff_sigma))
-        sampler.run_mcmc(pos, n, skip_initial_state_check=True, progress=False)
+        sampler.run_mcmc(pos, n, skip_initial_state_check=False, progress=False)
         #t_auto = np.mean(sampler.get_autocorr_time())
         samples = sampler.get_chain(discard = int(n/4), flat=True, thin=1)
         log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
@@ -1509,7 +1509,7 @@ class Population():
             with Pool() as pool:
                 # print('pooling')
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, pool=pool, args=([samples]))
-                sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True) #
+                sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=False) #
                 posterior_samples = sampler.get_chain(discard = 100, flat=True)
                 log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
                 pool.close()
@@ -1517,7 +1517,7 @@ class Population():
         else:
             sampler = emcee.EnsembleSampler(nwalkers, ndim, logpost_one, backend=backend, args=([samples]))
 
-            sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=True) #
+            sampler.run_mcmc(pos, steps, progress=True, skip_initial_state_check=False) #
             posterior_samples = sampler.get_chain(discard = 100, flat=True)
             log_prob_samples = sampler.get_log_prob(discard = 100, flat=True)
 
