@@ -1317,17 +1317,14 @@ class Population():
                                         if params[4] > ranges[4,0] and params[4] < ranges[4,1]: # max jjkep
                                             if params[5] >= ranges[5,0] and params[5] < ranges[5,1]:
                                                 return self.pop_like(data, params)
-                                    else:
-                                        return self.pop_like(data, params)
-                                else:
-                                    return -np.inf
+                                        return -np.inf
+                                    return self.pop_like(data, params)
                             else:
                                 if self.spinning:
                                     if params[3] > ranges[3,0] and params[3] < ranges[3,1]: # max jjkep
                                         if params[4] >= ranges[4,0] and params[4] < ranges[4,1]:
                                             return self.pop_like(data, params)
-                                    else:
-                                        return -np.inf
+                                    return -np.inf
                                 return self.pop_like(data, params)
                 return -np.inf
 
@@ -1371,18 +1368,14 @@ class Population():
                                                                     if params[9] > ranges[9,0] and params[9] < ranges[9,1]: # max jjkep
                                                                         if params[10] >= ranges[10,0] and params[10] < ranges[10,1]:
                                                                             return self.pop_like(data, params)
-                                                                else:
-                                                                    return self.pop_like(data, params)
-                                                            else:
-                                                                return -np.inf
+                                                                    return -np.inf
+                                                                return self.pop_like(data, params)
                                                         else:
                                                             if self.spinning:
-                                                                # print('here')
                                                                 if params[8] > ranges[8,0] and params[8] < ranges[8,1]: # max jjkep
                                                                     if params[9] >= ranges[9,0] and params[9] < ranges[9,1]:
                                                                         return self.pop_like(data, params)
-                                                                else:
-                                                                    return -np.inf
+                                                                return -np.inf
                                                             return self.pop_like(data, params)
                 return -np.inf
 
@@ -1422,19 +1415,14 @@ class Population():
                                                 if params[6] > ranges[6,0] and params[6] < ranges[6,1]: # max jjkep
                                                     if params[7] >= ranges[7,0] and params[7] < ranges[7,1]:
                                                         return self.pop_like(data, params)
-                                            else:
-                                                return self.pop_like(data, params)
-                                        else:
-                                            return -np.inf
+                                                return -np.inf
+                                            return self.pop_like(data, params)
                                     else:
                                         if self.spinning:
-                                            # print('here')
                                             if params[5] > ranges[5,0] and params[5] < ranges[5,1]: # max jjkep
                                                 if params[6] >= ranges[6,0] and params[6] < ranges[6,1]:
-                                                    # print(params[6])
                                                     return self.pop_like(data, params)
-                                            else:
-                                                return -np.inf
+                                            return -np.inf
                                         return self.pop_like(data, params)
                 return -np.inf
 
@@ -1477,17 +1465,15 @@ class Population():
                                                             if params[7] > ranges[7,0] and params[7] < ranges[7,1]: # max jjkep
                                                                 if params[8] >= ranges[8,0] and params[8] < ranges[8,1]:
                                                                     return self.pop_like(data, params)
-                                                        else:
-                                                            return self.pop_like(data, params)
-                                                    else:
-                                                        return -np.inf
+                                                            return -np.inf
+
+                                                        return self.pop_like(data, params)
                                                 else:
                                                     if self.spinning:
                                                         if params[6] > ranges[6,0] and params[6] < ranges[6,1]: # max jjkep
                                                             if params[7] >= ranges[7,0] and params[7] < ranges[7,1]:
                                                                 return self.pop_like(data, params)
-                                                        else:
-                                                            return -np.inf
+                                                        return -np.inf
                                                     return self.pop_like(data, params)
                 return -np.inf
 
@@ -1508,7 +1494,7 @@ class Population():
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1]
                 pos = p0 + pscale*np.random.randn(12, 6)
 
-
+        print(p0)
         nwalkers, ndim = pos.shape
         if save_to is not None:
             backend = emcee.backends.HDFBackend(save_to)
