@@ -48,7 +48,7 @@ pop_samples = nsbh_population.get_population(event_counts[0], True)
 fixed = {"a":0.63, "mu_1": 1.35, "sigma_1":0.07, "mu_2": 1.85, "sigma_2":0.35, "m_TOV":[mtov_True,1.7,3.2], "bh_min":[bh_min, bh_min-2, bh_min+2], "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 for i in range(5):
-    samples, likes = nsbh_population.infer(pop_samples, 2000, mult=True, save_to = None,fixed=fixed)
+    samples, likes = nsbh_population.infer(pop_samples, 4000, mult=True, save_to = None,fixed=fixed)
     np.savetxt('../{}/{}_mTOV_{}_bhmin_{}_{}.txt'.format(folder, detector, mtov_True, bh_min, str(event_counts[i])), samples)
     np.savetxt('../{}/{}_mTOV_{}_bhmin_{}_{}_likes.txt'.format(folder, detector, mtov_True, bh_min, str(event_counts[i])), likes)
     if i != 4:
