@@ -74,6 +74,16 @@ def set_detector(instrument):
         max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
         zs = np.linspace(0.0,max_z, 10000)
 
+    if instrument == "O3":
+        horizon = 777.6 * u.Mpc # horizon for a 2+20 merger
+        ms = np.genfromtxt('./injections/nospin_mgrid_O3.txt')
+        osnrs = np.genfromtxt('./injections/nospin_snrgrid_O3.txt')
+        injection_set = np.genfromtxt('./injections/threshold_8_injections_O3.txt')
+        injection_set_bns = np.genfromtxt('./injections/threshold_8_bns_injections_O3.txt')
+
+        max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
+        zs = np.linspace(0.0,max_z, 10000)
+
     pz_vals = p_z(zs, cosmology_1)
     cumulative_pz = cumtrapz(pz_vals, zs, initial = 0.0)
     global inv_cumulative_pz
