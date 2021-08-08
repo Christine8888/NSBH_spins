@@ -50,7 +50,7 @@ fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.7,3.2], "slope":[slope, 0.
 
 for i in range(5):
     samples, likes = nsbh_population.infer(pop_samples, 4000, mult=True, save_to = None,fixed=fixed)
-    np.savetxt('../{}/{}_mTOV_{}_run_{}_u_slope_{}.txt'.format(folder, detector, mtov_True, str(event_counts[i], slope)), samples)
+    np.savetxt('../{}/{}_mTOV_{}_run_{}_u_slope_{}.txt'.format(folder, detector, mtov_True, str(event_counts[i]), slope), samples)
     np.savetxt('../{}/{}_mTOV_{}_run_{}_u_slope_{}_likes.txt'.format(folder, detector, mtov_True, str(event_counts[i]), slope), likes)
     if i != 4:
     	new_samples = nsbh_population.get_population(event_counts[i+1]-event_counts[i], True)
