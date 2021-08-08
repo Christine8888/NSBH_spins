@@ -1421,6 +1421,7 @@ class Population():
                                             # print('here')
                                             if params[5] > ranges[5,0] and params[5] < ranges[5,1]: # max jjkep
                                                 if params[6] >= ranges[6,0] and params[6] < ranges[6,1]:
+                                                    # print(params[6])
                                                     return self.pop_like(data, params)
                                             else:
                                                 return -np.inf
@@ -2029,7 +2030,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
             else:
                 ranges[9] = [-0.01, 6]
                 pscale[9] = 0.2
-
+    print(ranges, pscale)
     return ranges, pscale
 
 
@@ -2157,5 +2158,5 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
             else:
                 ranges[6] = [-0.01, 6]
                 pscale[6] = 0.2
-
+    print(ranges, pscale)
     return ranges, pscale
