@@ -63,8 +63,8 @@ nsbh_population = p.Population([1.5, 100, 2, 1, 3, 5, 2], 'nsbh_one', vary_slope
 nsbh_population.set_injection_spins(p.injection_set)
 nsbh_population.samples = True
 
-fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.8,4], "bh_min":[bh_min, 1, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": [max_jjkep, 0, 1], "spin_slope": [spin_slope, -1, 5]}
-samples, likes = nsbh_population.infer(all_samples, 10000, mult=True, save_to = None,fixed=fixed)
+fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.8,4], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+samples, likes = nsbh_population.infer(all_samples, 20000, mult=True, save_to = None,fixed=fixed)
 
 np.savetxt('../real_data/{}_{}_{}_{}.txt'.format(args.name, args.type, gw190814_str, gw190426_str), samples)
 np.savetxt('../real_data/{}_{}_{}_{}_likes.txt'.format(args.name, args.type, gw190814_str, gw190426_str), likes)
