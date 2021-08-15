@@ -14,6 +14,8 @@ import astropy.units as u
 import populations as p
 import argparse
 
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--gw190814", action='store_true')
 parser.add_argument("--gw190426", action='store_true')
@@ -63,6 +65,7 @@ bh_slope = 2
 mtov_True = 2
 
 p.set_detector("O3")
+p.set_real_data(args.type)
 
 if args.poptype =="u":
     print("uniform population")

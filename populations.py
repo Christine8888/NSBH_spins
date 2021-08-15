@@ -96,6 +96,48 @@ def set_detector(instrument):
 
 set_detector("EarlyHigh")
 
+realdata = False
+
+def set_real_data(type):
+    global realdata
+    realdata = True
+    global realdata_type
+    realdata_type = type
+
+
+
+
+def real_data_prior(samples):
+    m1 = samples[:,0]
+    m2 = samples[:,1]
+    a1 = samples[:,2]
+    a2 = samples[:,3]
+
+    if realdata_type == "direct":
+        return np.ones(m1.shape[0])
+
+    elif realdata_type == "pos_chieff" or realdata_type == "chieff":
+        q = m2/m1
+        chieff_dat = chieff(m1, m2, a1, a2)
+        chieff_weight = np.zeros(m1.shape[0])
+
+        case1 = np.logical_or(chieff_dat < -0.7, chieff_dat > 0.7)
+        chieff_weight[case1] = 0
+
+        case2 = np.logical_and(chieff_dat > ((1-q)/(1+q))*0.7, chieff_dat < 0.7)
+        chieff_weight[case2] = (1+q[case2])**2 * (0.7 - chieff_dat[case2]) / (4*q[case2]*0.49)
+
+        case3 = np.logical_and(chieff_dat < (-(1-q)/(1+q)*0.7), chieff_dat > -0.7)
+        chieff_weight[case3] = (1+q[case3])**2 * (0.7 + chieff_dat[case3]) / (4*q[case3]*0.49)
+
+        case4 = np.logical_or.reduce((case1, case2, case3))
+
+        chieff_weight[~case4] = (1+q[~case4])/(2*0.7)
+
+        q_weight = (m1 + m2)/m1
+
+        return chieff_weight * q_weight
+
 def p_inject_bns_one(m1, m2, m_min=1, m_max=3, beta=3):
     p_m1 = 1/(m_max - m_min)
     p_m2 = like_m2(m2, m1, m_min, beta=3)
@@ -1241,7 +1283,9 @@ class Population():
 
 
     def pop_like(self, samples, params):
-        # global single
+        if realdata:
+            weight = real_data_prior(samples)
+
         if self.pop_type == "one":
             if self.selection:
                 mu = self.selection_norm(params)
@@ -1290,7 +1334,7 @@ class Population():
         if math.isnan(result):
             return -np.inf
 
-        return result
+        return result - np.log(weight)
 
     def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False, skip_initial_state_check = False):
         """
