@@ -1421,11 +1421,12 @@ class Population():
                                         if self.spinning:
                                             if params[5] > ranges[5,0] and params[5] < ranges[5,1]: # max jjkep
                                                 if params[6] >= ranges[6,0] and params[6] < ranges[6,1]:
+                                                    # print('here')
                                                     return self.pop_like(data, params)
                                             return -np.inf
                                         return self.pop_like(data, params)
+                # print('actually here')
                 return -np.inf
-
             if self.vary_slope and self.spinning:
                 p0 = [self.mu, self.sigma, self.m_TOV, self.bh_min, self.bh_slope, self.slope, self.max_jjkep, self.spin_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.2, 0.05, 0.05]
@@ -1494,7 +1495,7 @@ class Population():
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1]
                 pos = p0 + pscale*np.random.randn(12, 6)
 
-        print(p0)
+
         nwalkers, ndim = pos.shape
         if save_to is not None:
             backend = emcee.backends.HDFBackend(save_to)
@@ -1634,7 +1635,7 @@ def fix_params_one(fixed, vary_slope, spinning):
         count +=2
 
     ranges = np.zeros((count, 2))
-    pscale = np.zeros(count) + 0.01
+    pscale = np.zeros(count) + 0.001
 
     if "mu" in fixed:
         if isinstance(fixed["mu"], list):
@@ -1739,7 +1740,7 @@ def fix_params_two(fixed, vary_slope, spinning):
         count +=2
 
     ranges = np.zeros((count, 2))
-    pscale = np.zeros(count) + 0.01
+    pscale = np.zeros(count) + 0.001
 
     if "a" in fixed:
         if isinstance(fixed["a"], list):
@@ -1878,7 +1879,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         count +=2
 
     ranges = np.zeros((count, 2))
-    pscale = np.zeros(count) + 0.01
+    pscale = np.zeros(count) + 0.001
 
     if "a" in fixed:
         if isinstance(fixed["a"], list):
@@ -2039,7 +2040,7 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
         count +=2
 
     ranges = np.zeros((count, 2))
-    pscale = np.zeros(count) + 0.01
+    pscale = np.zeros(count) + 0.001
 
     if "mu" in fixed:
         if isinstance(fixed["mu"], list):
