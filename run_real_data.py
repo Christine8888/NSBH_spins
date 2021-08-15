@@ -20,6 +20,8 @@ parser.add_argument("--gw190426", action='store_true')
 parser.add_argument('--type', default='direct', type=str)
 parser.add_argument('--nsamp', default=3000, type=int)
 parser.add_argument('--name', type=str)
+parser.add_argument('--beta', type=int, default=3)
+parser.add_argumetn('--poptype', type=str, default="u")
 
 args = parser.parse_args()
 
@@ -50,6 +52,9 @@ if args.gw190426:
     all_samples = np.append(all_samples, gw190426, axis=0)
     gw190426_str = 'withgw190426'
 
+betastr = ''
+if args.beta != 3:
+    betastr = '{}q'.format(args.beta)
 
 max_jjkep = 1
 spin_slope = 0
@@ -59,12 +64,23 @@ mtov_True = 2
 
 p.set_detector("O3")
 
-nsbh_population = p.Population([1.5, 100, 2, 1, 0, 5, 2], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+if args.poptype =="u":
+    print("uniform population")
+    nsbh_population = p.Population([1.5, 100, 2, 1, args.beta, 5, 2], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+    fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+elif args.poptype=="1c":
+    print("1 component")
+    nsbh_population = p.Population([1.5, 0.5, 2, 1, args.beta, 5, 2], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+    fixed = {"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+elif args.poptype == "2c":
+    print("2 component")
+    nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, 2, 1, args.beta, 5, 2], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+    fixed = {"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+
 nsbh_population.set_injection_spins(p.injection_set)
 nsbh_population.samples = True
 
-fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 samples, likes = nsbh_population.infer(all_samples, 20000, mult=True, save_to = None,fixed=fixed)
 
-np.savetxt('../real_data/{}_{}_{}_{}_0q.txt'.format(args.name, args.type, gw190814_str, gw190426_str), samples)
-np.savetxt('../real_data/{}_{}_{}_{}_0q_likes.txt'.format(args.name, args.type, gw190814_str, gw190426_str), likes)
+np.savetxt('../real_data/{}_{}_{}_{}_{}_{}.txt'.format(args.pop_type, args.name, args.type, gw190814_str, gw190426_str, betastr), samples)
+np.savetxt('../real_data/{}_{}_{}_{}_{}_{}_likes.txt'.format(args.pop_type, args.name, args.type, gw190814_str, gw190426_str, betastr), likes)
