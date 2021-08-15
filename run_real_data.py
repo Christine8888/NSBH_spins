@@ -21,7 +21,7 @@ parser.add_argument('--type', default='direct', type=str)
 parser.add_argument('--nsamp', default=3000, type=int)
 parser.add_argument('--name', type=str)
 parser.add_argument('--beta', type=int, default=3)
-parser.add_argumetn('--poptype', type=str, default="u")
+parser.add_argument('--poptype', type=str, default="u")
 
 args = parser.parse_args()
 
