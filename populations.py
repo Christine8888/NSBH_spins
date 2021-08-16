@@ -1371,20 +1371,25 @@ class Population():
                                 return self.pop_like(data, params)
                 return -np.inf
 
+            mTOV_fix = self.m_TOV
+
+            if self.ignore_spin:
+                self.m_TOV += 0.3
+
             if self.vary_slope and self.spinning:
-                p0 = [self.mu_1, self.sigma_1, self.m_TOV, self.slope, self.max_jjkep, self.spin_slope]
+                p0 = [self.mu_1, self.sigma_1, mTOV_fix, self.slope, self.max_jjkep, self.spin_slope]
                 # pscale = [0.1, 0.05, 0.1, 0.05, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(12, 6)
             elif self.vary_slope:
-                p0 = [self.mu_1, self.sigma_1, self.m_TOV, self.slope]
+                p0 = [self.mu_1, self.sigma_1, mTOV_fix, self.slope]
                 # pscale = [0.1, 0.05, 0.1, 0.05]
                 pos = p0 + pscale*np.random.randn(8, 4)
             elif self.spinning:
-                p0 = [self.mu_1, self.sigma_1, self.m_TOV, self.max_jjkep, self.spin_slope]
+                p0 = [self.mu_1, self.sigma_1, mTOV_fix, self.max_jjkep, self.spin_slope]
                 # pscale = [0.1, 0.05, 0.1, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(10, 5)
             else:
-                p0 = [self.mu_1, self.sigma_1, self.m_TOV]
+                p0 = [self.mu_1, self.sigma_1, mTOV_fix]
                 # pscale = [0.1, 0.05, 0.1]
                 pos = p0 + pscale*np.random.randn(6, 3)
 
@@ -1422,20 +1427,27 @@ class Population():
                                                             return self.pop_like(data, params)
                 return -np.inf
 
+
+            mTOV_fix = self.m_TOV
+
+            if self.ignore_spin:
+                self.m_TOV += 0.3
+
+
             if self.vary_slope and self.spinning:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.bh_min, self.bh_slope, self.slope, self.max_jjkep, self.spin_slope]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.bh_min, self.bh_slope, self.slope, self.max_jjkep, self.spin_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.2, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(22, 11)
             elif self.vary_slope:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.bh_min, self.bh_slope, self.slope]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.bh_min, self.bh_slope, self.slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.2, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(18, 9)
             elif self.spinning:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.bh_min, self.bh_slope, self.max_jjkep, self.spin_slope]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.bh_min, self.bh_slope, self.max_jjkep, self.spin_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.2, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(20, 10)
             else:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.bh_min, self.bh_slope]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.bh_min, self.bh_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.2, 0.2]
                 pos = p0 + pscale*np.random.randn(16, 8)
             # print(p0)
@@ -1470,20 +1482,26 @@ class Population():
                                         return self.pop_like(data, params)
                 # print('actually here')
                 return -np.inf
+
+            mTOV_fix = self.m_TOV
+
+            if self.ignore_spin:
+                self.m_TOV += 0.3
+
             if self.vary_slope and self.spinning:
-                p0 = [self.mu, self.sigma, self.m_TOV, self.bh_min, self.bh_slope, self.slope, self.max_jjkep, self.spin_slope]
+                p0 = [self.mu, self.sigma, mTOV_fix, self.bh_min, self.bh_slope, self.slope, self.max_jjkep, self.spin_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.2, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(16, 8)
             elif self.vary_slope:
-                p0 = [self.mu, self.sigma, self.m_TOV, self.bh_min, self.bh_slope, self.slope]
+                p0 = [self.mu, self.sigma, mTOV_fix, self.bh_min, self.bh_slope, self.slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.2, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(12, 6)
             elif self.spinning:
-                p0 = [self.mu, self.sigma, self.m_TOV, self.bh_min, self.bh_slope, self.max_jjkep, self.spin_slope]
+                p0 = [self.mu, self.sigma, mTOV_fix, self.bh_min, self.bh_slope, self.max_jjkep, self.spin_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.2, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(14, 7)
             else:
-                p0 = [self.mu, self.sigma, self.m_TOV, self.bh_min, self.bh_slope]
+                p0 = [self.mu, self.sigma, mTOV_fix, self.bh_min, self.bh_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.2, 0.2]
                 pos = p0 + pscale*np.random.randn(10, 5)
             # print(p0, pos)
@@ -1521,20 +1539,25 @@ class Population():
                                                     return self.pop_like(data, params)
                 return -np.inf
 
+            mTOV_fix = self.m_TOV
+
+            if self.ignore_spin:
+                self.m_TOV += 0.3
+
             if self.vary_slope and self.spinning:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.slope, self.max_jjkep, self.spin_slope]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.slope, self.max_jjkep, self.spin_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(18, 9)
             elif self.vary_slope:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.slope]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05]
                 pos = p0 + pscale*np.random.randn(14, 7)
             elif self.spinning:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV, self.max_jjkep, self.spin_slope]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.max_jjkep, self.spin_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.05, 0.05]
                 pos = p0 + pscale*np.random.randn(16, 8)
             else:
-                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, self.m_TOV]
+                p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1]
                 pos = p0 + pscale*np.random.randn(12, 6)
 
@@ -1706,7 +1729,7 @@ def fix_params_one(fixed, vary_slope, spinning):
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
             ranges[2] = [list_[1], list_[2]]
-            pscale[2] = 0.1
+            pscale[2] = 0.05
         else:
             ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
@@ -1845,7 +1868,7 @@ def fix_params_two(fixed, vary_slope, spinning):
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
             ranges[5] = [list_[1], list_[2]]
-            pscale[5] = 0.1
+            pscale[5] = 0.05
         else:
             ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
@@ -1983,7 +2006,7 @@ def fix_params_nsbh(fixed, vary_slope, spinning):
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
             ranges[5] = [list_[1], list_[2]]
-            pscale[5] = 0.1
+            pscale[5] = 0.05
         else:
             ranges[5] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
@@ -2111,12 +2134,12 @@ def fix_params_nsbh_one(fixed, vary_slope, spinning):
         if isinstance(fixed["m_TOV"], list):
             list_ = fixed["m_TOV"]
             ranges[2] = [list_[1], list_[2]]
-            pscale[2] = 0.1
+            pscale[2] = 0.05
         else:
             ranges[2] = [fixed["m_TOV"]-0.01, fixed["m_TOV"]+0.01]
     else:
         ranges[2] = [1.5, 2.5]
-        pscale[2] = 0.1
+        pscale[2] = 0.05
 
     if "bh_min" in fixed:
         if isinstance(fixed["bh_min"], list):
