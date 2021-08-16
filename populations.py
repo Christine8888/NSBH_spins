@@ -895,6 +895,11 @@ class Population():
 
     def event_likelihood_one_samples(self, samples, params, nomean=False):
         # params: mu, sigma, m_TOV, slope (optional), spin parameters
+        if realdata:
+            weight = real_data_prior(samples)
+        else:
+            weight=1
+
         if self.vary_slope:
             truncs = truncnormal_like(samples[:,0], params[0], params[1], lower = 1, upper = m_crit_slope(params[2], params[3], samples[:,2]))
 
@@ -919,9 +924,13 @@ class Population():
                 spin_likes = 1
         if nomean:
             return truncs*qlikes*spin_likes
-        return np.mean(truncs*qlikes*spin_likes)
+        return np.mean(truncs*qlikes*spin_likes/weight)
 
     def event_likelihood_two_samples(self, samples, params, nomean=False):
+        if realdata:
+            weight = real_data_prior(samples)
+        else:
+            weight=1
         # params: 0 a, 1 mu_1, 2 sigma_1, 3 mu_2, 4 sigma_2, 5 m_TOV, 6 slope (optional), spin parameters
         if self.vary_slope:
             truncs = two_truncnormal_like(samples[:,0], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
@@ -949,11 +958,15 @@ class Population():
                 spin_likes = 1
         if nomean:
             return truncs*qlikes*spin_likes
-        return np.mean(truncs*qlikes*spin_likes)
+        return np.mean(truncs*qlikes*spin_likes/weight)
 
     def event_likelihood_nsbh_one_samples(self, samples, params, nomean=False):
         # params: mu, sigma, m_TOV, bh_min, bh_slope, slope (optional)
         # REPLACE LIKELIHOODS!
+        if realdata:
+            weight = real_data_prior(samples)
+        else:
+            weight=1
 
         p_m1 = like_plmin(samples[:,0], params[3], params[4])
         q = samples[:,1]/samples[:,0]
@@ -988,10 +1001,14 @@ class Population():
             return p_m1*p_m2*spin_likes*p_q
 
 
-        return np.mean(p_m1*p_m2*p_q*spin_likes)
+        return np.mean(p_m1*p_m2*p_q*spin_likes/weight)
 
     # BUG: cannot have both free spin parameters and varying slope
     def event_likelihood_nsbh_samples(self, samples, params, nomean=False):
+        if realdata:
+            weight = real_data_prior(samples)
+        else:
+            weight=1
         # params: a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
         # REPLACE LIKELIHOODS!
         p_m1 = like_plmin(samples[:,0], params[6], params[7])
@@ -1028,7 +1045,7 @@ class Population():
 
         if nomean:
             return p_m1*p_m2*p_q*spin_likes
-        return np.mean(p_m1*p_m2*p_q*spin_likes)
+        return np.mean(p_m1*p_m2*p_q*spin_likes/weight)
 
     def event_likelihood_one_single(self, samples, params):
         i = samples[0]
@@ -1280,8 +1297,6 @@ class Population():
 
 
     def pop_like(self, samples, params):
-        if realdata:
-            weight = real_data_prior(samples)
 
         if self.pop_type == "one":
             if self.selection:
@@ -1330,8 +1345,7 @@ class Population():
 
         if math.isnan(result):
             return -np.inf
-        if realdata:
-            return result - np.sum(np.log(weight))
+
         return result
     def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False, skip_initial_state_check = False):
         """
