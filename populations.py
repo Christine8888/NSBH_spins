@@ -98,12 +98,12 @@ set_detector("EarlyHigh")
 
 realdata = False
 
-def set_real_data(type):
+def set_real_data(datatype):
     global realdata
     realdata = True
     global realdata_type
-    realdata_type = type
-
+    realdata_type = datatype
+    print(datatype)
 
 
 
@@ -1334,7 +1334,7 @@ class Population():
         if math.isnan(result):
             return -np.inf
 
-        return result - np.log(weight)
+        return result - np.sum(np.log(weight))
 
     def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False, skip_initial_state_check = False):
         """
