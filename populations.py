@@ -122,7 +122,6 @@ def real_data_prior(samples):
         chieff_weight = np.zeros(m1.shape[0])
 
         case1 = np.logical_or(chieff_dat < -0.7, chieff_dat > 0.7)
-        chieff_weight[case1] = 0
 
         case2 = np.logical_and(chieff_dat > ((1-q)/(1+q))*0.7, chieff_dat < 0.7)
         chieff_weight[case2] = (1+q[case2])**2 * (0.7 - chieff_dat[case2]) / (4*q[case2]*0.49)
