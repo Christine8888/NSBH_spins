@@ -1333,9 +1333,7 @@ class Population():
 
         if math.isnan(result):
             return -np.inf
-
-        if realdata
-            return result - np.log(weight)
+        
         return result
 
     def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False, skip_initial_state_check = False):
