@@ -1333,19 +1333,9 @@ class Population():
 
         if math.isnan(result):
             return -np.inf
-<<<<<<< HEAD
-
-<<<<<<< HEAD
-        return result - np.sum(np.log(weight))
-=======
         if realdata
             return result - np.log(weight)
-=======
-        
->>>>>>> 9ef9884c60e28d041bed6316793e29869c597e99
         return result
->>>>>>> f64603f4ac346262995d6639a062a11de97df48f
-
     def infer(self, samples, steps, save_to='./default.h5', fixed = {}, mult=False, skip_initial_state_check = False):
         """
         Perform inference on samples.
