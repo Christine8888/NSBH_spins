@@ -398,11 +398,14 @@ def like_plmin_one(x, m_min, alpha):
         return ((alpha-1)/m_min)*(x/m_min)**(-alpha)
     return 0
 
-def like_beta_nsbh(x, beta, maxNS = m_crit(2, 1), minBH = 5):
+def like_beta_nsbh(x, beta, maxNS, minBH):
     # beta = beta+1
     result = np.zeros(x.shape[0])
     mask = np.logical_and(x<=1, x>0)
-    result[mask] = (x**beta*(beta+1)/((maxNS/minBH)**(beta+1)))[mask]
+    #maxq = np.min([maxNS/minBH, np.ones(maxNS.shape)], axis=0)
+    maxq = maxNS/minBH
+    norm = (1/(beta+1)) - ((maxq)**(beta+1)/(beta+1))
+    result[mask] = (x**beta*(beta+1)/norm)[mask]
     return result
 
 def like_beta(x, beta):
@@ -495,16 +498,10 @@ def generate_NSBH(N, params, nsbh_only = True, vary_slope = False, spinning=Fals
             d1 = draw_NSBH(params, s1, vary_slope, a_bh = a_bh, pop_type = pop_type)
             d2 = draw_NSBH(params, s2, vary_slope, a_bh = a_bh, pop_type = pop_type)
 
-        if d1 > d2:
-            m_1 = d1
-            m_2 = d2
-            spin_1 = s1 # set to 0 for non-spinning black hole case
-            spin_2 = s2
-        elif d2 > d1:
-            m_1 = d2
-            m_2 = d1
-            spin_1 = s2
-            spin_2 = s1
+        m_1 = d2
+        m_2 = d1
+        spin_1 = s2
+        spin_2 = s1
 
         q = m_2/m_1
 
@@ -1168,6 +1165,7 @@ class Population():
         return np.mean(p_m1*p_m2*p_q*spin_likes)
 
     def event_likelihood_nsbh_vec(self, samples, params, mu):
+
         i = samples.squeeze()
         p_m1 = like_plmin(i[:,0], params[6], params[7])
         q = i[:,1]/i[:,0]
@@ -1396,7 +1394,7 @@ class Population():
         elif self.pop_type == "nsbh":
             ranges, pscale = fix_params_nsbh(fixed, self.vary_slope, self.spinning)
             pscale /= np.sqrt(samples.shape[0])
-            # print(ranges, pscale)
+            print(ranges, pscale)
             def logpost_one(params, data):
                 # params = a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
                 if params[0] > ranges[0,0] and params[0] < ranges[0,1]: # a
