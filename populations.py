@@ -28,7 +28,7 @@ def p_z(zs, cosmology): #here the zs have to be dense enough to permit numerical
     pz = pz_unnorm/np.trapz(pz_unnorm, zs) #numerically normalize
     return pz
 
-no_selection_injections = np.genfromtxt('./injections/threshold_0_injections.txt')
+no_selection_injections = np.genfromtxt('./injections/threshold_0_injections.txt') # do not extend down to BHMIN=2
 
 def set_detector(instrument):
     global injection_set
@@ -147,14 +147,14 @@ def p_inject_bns(m1, m2, m_min=1, m_max=3, beta=3):
     p_m2 = like_m2(m2, m1, m_min, beta=3)
     return p_m1 * p_m2
 
-def p_inject_list(m1, m2, m1_min=3, m2_min=1, m2_max=3, beta=3):
-    p_m1 = like_plmin(m1, m1_min, alpha=4)
+def p_inject_list(m1, m2, m1_min=1.5, m2_min=1, m2_max=3.5, alpha=2.5):
+    p_m1 = like_plmin(m1, m1_min, alpha=alpha)
     p_m2 = np.ones(m2.shape[0])/(m2_max - m2_min)
     #p_q = like_m2(m2, m1, m2_min, m2_max)
     return p_m1 * p_m2 #* p_q
 
-def p_inject_one(m1, m2, m1_min=3, m2_min=1, m2_max=3, beta=3):
-    p_m1 = like_plmin_one(m1, m1_min, alpha=4)
+def p_inject_one(m1, m2, m1_min=1.5, m2_min=1, m2_max=3.5, alpha=2.5):
+    p_m1 = like_plmin_one(m1, m1_min, alpha)
     p_m2 = 1/(m2_max - m2_min)
     #p_q = like_m2(m2, m1, m2_min, m2_max)
     return p_m1 * p_m2 #* p_q
@@ -169,7 +169,7 @@ def generate_z(N):
     rand = np.random.rand(N)
     return inv_cumulative_pz(rand)
 
-def generate_injection(m1_min=3, alpha=4, m2_min=1, m2_max=3):
+def generate_injection(m1_min=1.5, alpha=2.5, m2_min=1, m2_max=3.5):
     m1 = float(generate_plmin(1, m1_min, alpha))
     m2 = np.random.rand()*(m2_max - m2_min) + m2_min
     return np.array([m1, m2])
@@ -188,6 +188,8 @@ def check_injection(m1, m2, interp, ref_dL = 1, threshold = DET_THRESHOLD): # re
     # print(interp.ev(m1*(1+z), m2*(1+z)))
     snr = interp.ev(m1*(1+z), m2*(1+z)) * ref_dL/dL
     # print(snr*theta)
+    if m1 <= m2:
+        return False, 0
     return (snr * theta) > threshold, snr*theta
 
 def create_injection_set(N, generate_injection, interp, threshold = DET_THRESHOLD):
@@ -401,11 +403,14 @@ def like_plmin_one(x, m_min, alpha):
 def like_beta_nsbh(x, beta, maxNS, minBH):
     # beta = beta+1
     result = np.zeros(x.shape[0])
-    mask = np.logical_and(x<=1, x>0)
-    #maxq = np.min([maxNS/minBH, np.ones(maxNS.shape)], axis=0)
     maxq = maxNS/minBH
-    norm = (1/(beta+1)) - ((maxq)**(beta+1)/(beta+1))
-    result[mask] = (x**beta*(beta+1)/norm)[mask]
+
+
+    mask = np.logical_and(x<=maxq, x>=0)
+    #maxq = np.min([maxNS/minBH, np.ones(maxNS.shape)], axis=0)
+    #norm = (1/(beta+1)) - ((maxq)**(beta+1)/(beta+1))
+    norm = ((maxq)**(beta+1)/(beta+1))
+    result[mask] = (x**beta/norm)[mask]
     return result
 
 def like_beta(x, beta):
@@ -506,8 +511,9 @@ def generate_NSBH(N, params, nsbh_only = True, vary_slope = False, spinning=Fals
         q = m_2/m_1
 
         if np.random.rand() < q**beta:
-            pop[total, :] = np.array([m_1, m_2, spin_1, spin_2])
-            total += 1
+            if q <= 1:
+                pop[total, :] = np.array([m_1, m_2, spin_1, spin_2])
+                total += 1
 
     return pop
 
@@ -656,6 +662,7 @@ class Population():
             # print([self.event_likelihood_two_single(np.array([i]), params) for i in new_set])
             return (1/N) * np.sum(self.event_likelihood_two_samples(self.new_set, params, nomean=True)/(p_inject_bns(self.new_set[:,0], self.new_set[:,1])*spin_likes))
         elif self.pop_type == 'nsbh':
+            #print(self.event_likelihood_nsbh_samples(self.new_set, params, nomean=True))
             return (1/N) * np.sum(self.event_likelihood_nsbh_samples(self.new_set, params, nomean=True)/(p_inject_list(self.new_set[:,0], self.new_set[:,1])*spin_likes))
         elif self.pop_type == 'nsbh_one':
             #print(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True))
@@ -1044,6 +1051,8 @@ class Population():
 
 
         if nomean:
+            #print(p_m2)
+
             return p_m1*p_m2*p_q*spin_likes
         return np.mean(p_m1*p_m2*p_q*spin_likes/weight)
 
@@ -1218,7 +1227,7 @@ class Population():
             else:
                 spin_likes = 1
             # print(spin_likes)
-
+        # print(mu)
         return np.sum(np.log(p_m1*p_m2*p_q*spin_likes/(mu)))
 
     def event_likelihood_nsbh_one_single(self, samples, params):

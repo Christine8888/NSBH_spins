@@ -70,15 +70,15 @@ p.set_real_data(args.type)
 if args.poptype =="u":
     print("uniform population")
     nsbh_population = p.Population([1.5, 100, 2, 1, args.beta, 5, 2], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
-    fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+    fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 elif args.poptype=="1c":
     print("1 component")
     nsbh_population = p.Population([1.5, 0.5, 2, 1, args.beta, 5, 2], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
-    fixed = {"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+    fixed = {"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 elif args.poptype == "2c":
     print("2 component")
     nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, 2, 1, args.beta, 5, 2], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
-    fixed = {"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 2, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+    fixed = {"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 nsbh_population.set_injection_spins(p.injection_set)
 nsbh_population.samples = True
