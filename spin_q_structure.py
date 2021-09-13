@@ -515,7 +515,7 @@ def generate_NSBH(N, params, nsbh_only = True, vary_slope = False, spinning=Fals
     return pop
 
 class Population():
-    def __init__(self, params, pop_type, vary_slope=False, selection=False, spinning = False, m1_nospin = False, spin_params = [1.0, 0.0], ignore_spin = False, verbose=True):
+    def __init__(self, params, pop_type, vary_slope=False, selection=False, spinning = False, m1_nospin = False, restrict_m1 = None, spin_params = [1.0, 0.0], ignore_spin = False, verbose=True):
         """
         Population of compact objects.
 
@@ -541,6 +541,10 @@ class Population():
         self.m1_nospin = m1_nospin
         self.ignore_spin = ignore_spin
         self.verbose = verbose
+        if restrict_m1 is not None:
+            self.restrict_m1 = restrict_m1
+        else:
+            self.restrict_m1 = m1_nospin
 
         if self.spinning:
             self.max_jjkep = spin_params[0]
@@ -618,7 +622,7 @@ class Population():
             return (1/N) * np.sum(self.event_likelihood_nsbh_one_samples(self.new_set, params, nomean=True)/(p_inject_list(self.new_set[:,0], self.new_set[:,1])*spin_likes))
 
 
-    def get_population(self, N, samples=True, N_samples=500):
+    def get_population(self, N, samples=True, N_samples=500, return_p0 = False):
         self.N = N
         self.samples = samples
         self.N_samples = N_samples
@@ -631,7 +635,7 @@ class Population():
             i = 0
             while i < N:
 
-                new_draw = self.get_samples(n, return_p0=False)
+                new_draw = self.get_samples(n, return_p0=return_p0)
                 if new_draw is not None:
                     population[i] = new_draw
                     i += 1
@@ -643,7 +647,7 @@ class Population():
             i = 0
             while i < N:
                 tot += 1
-                new_draw = self.get_samples(n, return_p0=True)
+                new_draw = self.get_samples(n, return_p0=return_p0)
                 if new_draw is not None:
                     population[i] = new_draw
                     i += 1
@@ -750,19 +754,23 @@ class Population():
         if self.verbose:
             print(p0, test_rho)
 
+
         if return_p0:
             m_chirp = chirp_mass(p0[0], p0[1])
             eta = mass_ratio(p0[0], p0[1])
             chi_eff = chieff(p0[0], p0[1], p0[2], p0[3])
             q = p0[1]/p0[0]
             return [m_chirp, eta, chi_eff, q]
+        if not self.samples:
+            return p0
 
-        if self.m1_nospin:
+
+        if self.restrict_m1:
             p0 = [test_m_1, test_m_2, test_chi_1, test_chi_2]
             pscale = [0.01, 0.01, 0.001, 0.05]
         else:
             pscale = [0.01, 0.01, 0.05, 0.05]
-
+        print(pscale)
         pscale /= (test_rho/8)
         pos = p0 + pscale*np.random.randn(8, 4)
         pos = np.abs(pos)
@@ -792,7 +800,7 @@ class Population():
 
                     if params[0] > params[1]:
 
-                        if self.m1_nospin:
+                        if self.m1_nospin and self.restrict_m1:
                             if params[2] >= 0 and params[2] <= 0.01:
                                 # print(params[2])
                                 if params[3] >= 0 and params[3] <= 1.2:
