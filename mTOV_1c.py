@@ -25,7 +25,7 @@ parser.add_argument("--spin_slope", type=float, default=0.0)
 parser.add_argument("--bh_min", type=float, default=5.0)
 parser.add_argument("--bh_slope", type=float, default=2.0)
 parser.add_argument("--folder", type=str, default="mTOV_convergence")
-parser.add_argument("--free", type=bool, default=False)
+parser.add_argument("--free",  action="store_true")
 
 
 args = parser.parse_args()
