@@ -1395,7 +1395,7 @@ class Population():
             mTOV_fix = self.m_TOV
 
             if self.ignore_spin:
-                self.m_TOV += 0.3
+                mTOV_fix += 0.3
 
             if self.vary_slope and self.spinning:
                 p0 = [self.mu_1, self.sigma_1, mTOV_fix, self.slope, self.max_jjkep, self.spin_slope]
@@ -1452,7 +1452,7 @@ class Population():
             mTOV_fix = self.m_TOV
 
             if self.ignore_spin:
-                self.m_TOV += 0.3
+                mTOV_fix += 0.3
 
 
             if self.vary_slope and self.spinning:
@@ -1507,7 +1507,7 @@ class Population():
             mTOV_fix = self.m_TOV
 
             if self.ignore_spin:
-                self.m_TOV += 0.3
+                mTOV_fix += 0.3
 
             if self.vary_slope and self.spinning:
                 p0 = [self.mu, self.sigma, mTOV_fix, self.bh_min, self.bh_slope, self.slope, self.max_jjkep, self.spin_slope]
@@ -1563,7 +1563,7 @@ class Population():
             mTOV_fix = self.m_TOV
 
             if self.ignore_spin:
-                self.m_TOV += 0.3
+                mTOV_fix += 0.3
 
             if self.vary_slope and self.spinning:
                 p0 = [self.a, self.mu_1, self.sigma_1, self.mu_2, self.sigma_2, mTOV_fix, self.slope, self.max_jjkep, self.spin_slope]
