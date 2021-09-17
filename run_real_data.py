@@ -14,7 +14,7 @@ import astropy.units as u
 import populations as p
 import argparse
 
-
+print('starting up')
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gw190814", action='store_true')
