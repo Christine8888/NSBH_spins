@@ -41,7 +41,7 @@ bh_min = args.bh_min
 bh_slope = args.bh_slope
 folder = args.folder
 
-nsbh_population = p.Population([1.5, 100, mtov_True, 1, 3, bh_min, bh_slope], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+nsbh_population = p.Population([1.5, 0.5, mtov_True, 1, 3, bh_min, bh_slope], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
 nsbh_population.set_injection_spins(p.injection_set)
 
 pop_samples = nsbh_population.get_population(event_counts[0], True)
