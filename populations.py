@@ -376,7 +376,7 @@ def jacobian_2(m_1, m_2):
 def pl_cdf(x, x_min, alpha):
     return 1-(x/x_min)**(-alpha+1)
 
-def like_plminmax(x, m_min, m_max, alpha):
+def like_plminmax(x, m_min,alpha,  m_max=30):
     result = np.zeros(x.shape[0])
     mask = np.logical_and(x<=m_max, x>=m_min)
     result[mask] = ((alpha-1)/m_min)*(x[mask]/m_min)**(-alpha)/pl_cdf(m_max, m_min, alpha)
@@ -390,7 +390,7 @@ def like_plmin(x, m_min, alpha):
     result[~mask] = 0
     return result
 
-def like_plminmax_one(x, m_min, m_max, alpha):
+def like_plminmax_one(x, m_min,alpha, m_max=30):
     if x < m_max and x > m_min:
         return ((alpha-1)/m_min)*(x/m_min)**(-alpha)/pl_cdf(m_max, m_min, alpha)
     return 0
@@ -975,7 +975,8 @@ class Population():
         else:
             weight=1
 
-        p_m1 = like_plmin(samples[:,0], params[3], params[4])
+        p_m1 = like_plminmax(samples[:,0], params[3], params[4])
+        #print(p_m1, samples[:,0])
         q = samples[:,1]/samples[:,0]
         maxspin = self.max_jjkep
 
@@ -1006,8 +1007,9 @@ class Population():
 
         if nomean:
             return p_m1*p_m2*spin_likes*p_q
-
-
+        #print(np.mean(p_m1*p_m2*p_q*spin_likes/weight))
+        #print(params[5], params[6], samples[:,2], spin_likes)
+        #print(np.mean(p_m1*p_m2*p_q*spin_likes/weight))
         return np.mean(p_m1*p_m2*p_q*spin_likes/weight)
 
     # BUG: cannot have both free spin parameters and varying slope
@@ -1018,7 +1020,7 @@ class Population():
             weight=1
         # params: a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
         # REPLACE LIKELIHOODS!
-        p_m1 = like_plmin(samples[:,0], params[6], params[7])
+        p_m1 = like_plminmax(samples[:,0], params[6], params[7])
         q = samples[:,1]/samples[:,0]
         maxspin = self.max_jjkep
 
@@ -1160,7 +1162,7 @@ class Population():
         # params: a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
         # REPLACE LIKELIHOODS!
         if self.vary_slope:
-            p_m1 = like_plmin_one(i[0], params[6], params[7])
+            p_m1 = like_plminmax_one(i[0], params[6], params[7])
             p_m2 = two_truncnormal_like_one(i[1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
                                       mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit_slope(params[5], params[8], i[3]))
 
@@ -1175,7 +1177,7 @@ class Population():
                 spin_likes = 1
 
         else:
-            p_m1 = like_plmin_one(i[0], params[6], params[7])
+            p_m1 = like_plminmax_one(i[0], params[6], params[7])
             # print(p_m1)
             p_m2 = two_truncnormal_like_one(i[1], a = params[0], mu_1 = params[1], sigma_1 = params[2], \
                                       mu_2 = params[3], sigma_2 = params[4], lower = 1, upper = m_crit(params[5], i[3], self.ignore_spin))
@@ -1193,7 +1195,7 @@ class Population():
     def event_likelihood_nsbh_vec(self, samples, params, mu):
 
         i = samples.squeeze()
-        p_m1 = like_plmin(i[:,0], params[6], params[7])
+        p_m1 = like_plminmax(i[:,0], params[6], params[7])
         q = i[:,1]/i[:,0]
         maxspin = self.max_jjkep
 
@@ -1268,7 +1270,7 @@ class Population():
 
     def event_likelihood_nsbh_one_vec(self, samples, params, mu):
         i = samples.squeeze()
-        p_m1 = like_plmin(i[:,0], params[3], params[4])
+        p_m1 = like_plminmax(i[:,0], params[3], params[4])
         q = i[:,1]/i[:,0]
 
         maxspin = 1
@@ -1481,9 +1483,11 @@ class Population():
             def logpost_one(params, data):
                 if params[0] > ranges[0,0] and params[0] < ranges[0,1]: # mu
                      #must get diff peaks
+
                     if params[1] > ranges[1,0] and params[1] < ranges[1,1]: # sigma
                         if params[2] > ranges[2,0] and params[2] < ranges[2,1]:
                             if params[3] > ranges[3,0] and params[3] < ranges[3,1]: #
+
                                 if params[4] > ranges[4,0] and params[4] < ranges[4,1]: # bh_slope
                                     if self.vary_slope:
                                         if params[5] > ranges[5,0] and params[5] < ranges[5,1]: # slope
@@ -1497,7 +1501,8 @@ class Population():
                                         if self.spinning:
                                             if params[5] > ranges[5,0] and params[5] < ranges[5,1]: # max jjkep
                                                 if params[6] >= ranges[6,0] and params[6] < ranges[6,1]:
-                                                    # print('here')
+                                                    #print('here')
+                                                    #print(self.pop_like(data, params))
                                                     return self.pop_like(data, params)
                                             return -np.inf
                                         return self.pop_like(data, params)
