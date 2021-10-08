@@ -47,10 +47,10 @@ nsbh_population.set_injection_spins(p.injection_set)
 pop_samples = nsbh_population.get_population(event_counts[0], True)
 if args.free:
     N = 4000
-    fixed = {"mu": [1.0, 2.0], "sigma": [0.01, 1.0], "m_TOV":[mtov_True+0.3,1.8,3.5], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+    fixed = {"mu": [1.5, 1.0, 2.0], "sigma": [0.5, 0.01, 1.0], "m_TOV":[mtov_True+0.3,1.8,3.5], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 else:
     N=2000
-    fixed = {"mu": 1.5, "sigma": 0.5, "m_TOV":[mtov_True+0.3,1.8,3.5], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+    fixed = {"m_TOV":[mtov_True+0.3,1.8,3.5], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 for i in range(5):
     samples, likes = nsbh_population.infer(pop_samples, N, mult=True, save_to = None,fixed=fixed)
