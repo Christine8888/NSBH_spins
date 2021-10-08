@@ -24,6 +24,7 @@ parser.add_argument('--nsamp', default=3000, type=int)
 parser.add_argument('--name', type=str)
 parser.add_argument('--beta', type=int, default=3)
 parser.add_argument('--poptype', type=str, default="u")
+parser.add_argument("--freespin", action='store_true')
 
 args = parser.parse_args()
 
@@ -80,6 +81,11 @@ elif args.poptype == "2c":
     nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, 2, 1, args.beta, 5, 2], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
     fixed = {"mu_1": [1.5, 1.0, 3.0],"sigma_1":[0.5, 0.01, 1.5],"mu_2": [1.5, 1.0, 3.0],"sigma_2":[0.5, 0.01, 1.5],"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
+if args.freespin:
+    fixed['max_jjkep'] = [1.0, 0.0, 1.0]
+    fixed['spin_slope'] = [0.0, -0.01, 6.0]
+
+    
 nsbh_population.set_injection_spins(p.injection_set)
 nsbh_population.samples = True
 
