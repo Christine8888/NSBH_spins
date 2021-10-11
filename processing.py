@@ -71,7 +71,7 @@ def plot_constraints(constraints, counts, color='b'):
 
 
 
-def processing(folder, mode, dlist=None, plot=True):
+def processing(folder, mode, dlist=None, plot=True, name='default'):
     base = '../spin_results/{}/'.format(folder)
 
     if dlist is None:
@@ -207,7 +207,7 @@ def processing(folder, mode, dlist=None, plot=True):
                 print(constraints)
 
         elif mode == 'real_data_99pc':
-            if 'likes' not in i and os.path.isfile(os.path.join(base, i)):
+            if 'likes' not in i and os.path.isfile(os.path.join(base, i)) and name in i:
                 root = i.split('.')[0]
                 print(root)
                 real = np.genfromtxt(base + '{}.txt'.format(root))
@@ -265,7 +265,7 @@ def processing(folder, mode, dlist=None, plot=True):
                 print(np.sum(minbh-cutoff > 0)/cutoff.shape[0])
 
         elif mode == 'real_data_txt':
-            if 'likes' not in i and os.path.isfile(os.path.join('../spin_results/real_data/',i)):
+            if 'likes' not in i and os.path.isfile(os.path.join('../spin_results/real_data/',i)) and name in i:
                 root = i.split('.')[0]
                 print(root)
                 real = np.genfromtxt(base + '{}.txt'.format(root))
@@ -293,7 +293,7 @@ def processing(folder, mode, dlist=None, plot=True):
             N = 1000
             spins = np.zeros(N)
 
-            if 'likes' not in i and 'withgw190814' not in i and os.path.isfile(os.path.join('../spin_results/real_data/',i)):
+            if 'likes' not in i and 'withgw190814' not in i and os.path.isfile(os.path.join('../spin_results/real_data/',i)) and name in i:
                 root = i.split('.')[0]
                 print(root)
                 real = np.genfromtxt(base + '{}.txt'.format(root))
@@ -331,7 +331,7 @@ def processing(folder, mode, dlist=None, plot=True):
             N = 500
             spins = np.zeros(N)
 
-            if 'likes' not in i and 'withgw190814' not in i and os.path.isfile(os.path.join('../spin_results/real_data/',i)) and not os.path.exists('../spin_results/outputs/{}/minspin_99pc/{}.png'.format(folder, i)):
+            if 'likes' not in i and 'withgw190814' not in i and os.path.isfile(os.path.join('../spin_results/real_data/',i)) and not os.path.exists('../spin_results/outputs/{}/minspin_99pc/{}.png'.format(folder, i)) and name in i:
                 root = i.split('.')[0]
                 print(root)
                 real = np.genfromtxt(base + '{}.txt'.format(root))
@@ -575,77 +575,78 @@ def table(folder, mode, already_done = None, dlist=None, save=None, plot=True):
         if save is not None:
             pd.DataFrame(rows_list).to_csv('../spin_results/{}.csv'.format(save))
 
-def table_realdata(save=True):
+def table_realdata(save=True, name='default'):
     rows_list = []
     for i in os.listdir('../spin_results/outputs/real_data/bhmin'):
-        #if '2c' in i and 'nogw190814' in i and 'nogw190426' in i and '0q' in i:
-        print(i)
-        test = []
-        #test.append(index)
-        test.append(i.split('_')[2]) #type
+        if name in i:
+            #if '2c' in i and 'nogw190814' in i and 'nogw190426' in i and '0q' in i:
+            print(i)
+            test = []
+            #test.append(index)
+            test.append(i.split('_')[2]) #type
 
-        if 'withgw190814' in i:
-            test.append(True)
-        else:
-            test.append(False)
-        if 'withgw190426' in i:
-            test.append(True)
-        else:
-            test.append(False)
+            if 'withgw190814' in i:
+                test.append(True)
+            else:
+                test.append(False)
+            if 'withgw190426' in i:
+                test.append(True)
+            else:
+                test.append(False)
 
-        test.append(i.split('_')[0]) # mass model
+            test.append(i.split('_')[0]) # mass model
 
-        if '0q' in i:
-            test.append(0)
-        else:
-            test.append(3)
+            if '0q' in i:
+                test.append(0)
+            else:
+                test.append(3)
 
-        mtov_path = '../spin_results/outputs/real_data/mTOV/' + i
-        mtov_dat = np.genfromtxt(mtov_path)
-        mtov_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(mtov_dat[3], mtov_dat[4]-mtov_dat[3], mtov_dat[3]-mtov_dat[2])
-        test.append(mtov_str)
-        min_str = mtov_dat[1]
-        test.append('{0:.1f}'.format(min_str))
-
-
-        pc_path = '../spin_results/outputs/real_data/99pc/' + i
-        pc_dat = np.genfromtxt(pc_path)
-        pc_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(pc_dat[3], pc_dat[4]-pc_dat[3], pc_dat[3]-pc_dat[2])
-        test.append(pc_str)
-
-        bhmin_path = '../spin_results/outputs/real_data/bhmin/' + i
-        bhmin_dat = np.genfromtxt(bhmin_path)
-        bhmin_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(bhmin_dat[3], bhmin_dat[4]-bhmin_dat[3], bhmin_dat[3]-bhmin_dat[2])
-        test.append(bhmin_str)
-
-        abh_path = '../spin_results/outputs/real_data/bhslope/' + i
-        abh_dat = np.genfromtxt(abh_path)
-        abh_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(abh_dat[3], abh_dat[4]-abh_dat[3], abh_dat[3]-abh_dat[2])
-        test.append(abh_str)
-
-        lmg_path = '../spin_results/outputs/real_data/massgap/' + i
-        lmg_dat = np.genfromtxt(lmg_path)
-        lmg_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(lmg_dat[3], lmg_dat[4]-lmg_dat[3], lmg_dat[3]-lmg_dat[2])
-        test.append(lmg_str)
+            mtov_path = '../spin_results/outputs/real_data/mTOV/' + i
+            mtov_dat = np.genfromtxt(mtov_path)
+            mtov_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(mtov_dat[3], mtov_dat[4]-mtov_dat[3], mtov_dat[3]-mtov_dat[2])
+            test.append(mtov_str)
+            min_str = mtov_dat[1]
+            test.append('{0:.1f}'.format(min_str))
 
 
-        lmg_path = '../spin_results/outputs/real_data/99pc_massgap/' + i
-        lmg_dat = np.genfromtxt(lmg_path)
-        lmg_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(lmg_dat[3], lmg_dat[4]-lmg_dat[3], lmg_dat[3]-lmg_dat[2])
-        test.append(lmg_str)
-        test.append(lmg_dat[7])
-        test.append(lmg_dat[8])
+            pc_path = '../spin_results/outputs/real_data/99pc/' + i
+            pc_dat = np.genfromtxt(pc_path)
+            pc_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(pc_dat[3], pc_dat[4]-pc_dat[3], pc_dat[3]-pc_dat[2])
+            test.append(pc_str)
 
-        if 'withgw190814' in i:
-            spin_path = '../spin_results/outputs/real_data/minspin/' + i
-            spin_dat = np.genfromtxt(spin_path)
-            spin_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(spin_dat[3], spin_dat[4]-spin_dat[3], spin_dat[3]-spin_dat[2])
-            test.append(spin_str)
-        else:
-            test.append('')
+            bhmin_path = '../spin_results/outputs/real_data/bhmin/' + i
+            bhmin_dat = np.genfromtxt(bhmin_path)
+            bhmin_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(bhmin_dat[3], bhmin_dat[4]-bhmin_dat[3], bhmin_dat[3]-bhmin_dat[2])
+            test.append(bhmin_str)
 
-        #print(test)
-        rows_list.append(test)
+            abh_path = '../spin_results/outputs/real_data/bhslope/' + i
+            abh_dat = np.genfromtxt(abh_path)
+            abh_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(abh_dat[3], abh_dat[4]-abh_dat[3], abh_dat[3]-abh_dat[2])
+            test.append(abh_str)
+
+            lmg_path = '../spin_results/outputs/real_data/massgap/' + i
+            lmg_dat = np.genfromtxt(lmg_path)
+            lmg_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(lmg_dat[3], lmg_dat[4]-lmg_dat[3], lmg_dat[3]-lmg_dat[2])
+            test.append(lmg_str)
+
+
+            lmg_path = '../spin_results/outputs/real_data/99pc_massgap/' + i
+            lmg_dat = np.genfromtxt(lmg_path)
+            lmg_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(lmg_dat[3], lmg_dat[4]-lmg_dat[3], lmg_dat[3]-lmg_dat[2])
+            test.append(lmg_str)
+            test.append(lmg_dat[7])
+            test.append(lmg_dat[8])
+
+            if 'withgw190814' in i:
+                spin_path = '../spin_results/outputs/real_data/minspin/' + i
+                spin_dat = np.genfromtxt(spin_path)
+                spin_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(spin_dat[3], spin_dat[4]-spin_dat[3], spin_dat[3]-spin_dat[2])
+                test.append(spin_str)
+            else:
+                test.append('')
+
+            #print(test)
+            rows_list.append(test)
     if save:
         pd.DataFrame(rows_list).to_csv('../spin_results/real_data.csv')
     return rows_list
