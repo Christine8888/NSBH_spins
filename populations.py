@@ -511,7 +511,7 @@ def generate_NSBH(N, params, nsbh_only = True, vary_slope = False, spinning=Fals
         q = m_2/m_1
 
         if np.random.rand() < q**beta:
-            #if q <= 1: # [CCHANGE BACK LATER]
+            #if q <= 1: # [CCHANGE BACK LATER] [ATTENTION] [FIX]
             pop[total, :] = np.array([m_1, m_2, spin_1, spin_2])
             total += 1
 
@@ -1003,13 +1003,13 @@ class Population():
                     spin_likes *= self.pl_spin(samples[:,2], params[5], params[6])
             else:
                 spin_likes = 1
-
-
         if nomean:
             return p_m1*p_m2*spin_likes*p_q
-        #print(np.mean(p_m1*p_m2*p_q*spin_likes/weight))
+        #print(np.mean(p_m2*p_q*spin_likes/weight))
         #print(params[5], params[6], samples[:,2], spin_likes)
         #print(np.mean(p_m1*p_m2*p_q*spin_likes/weight))
+        #print(samples[:,3])
+        #print(spin_likes)
         return np.mean(p_m1*p_m2*p_q*spin_likes/weight)
 
     # BUG: cannot have both free spin parameters and varying slope
@@ -1427,27 +1427,27 @@ class Population():
                     if params[1] > ranges[1,0] and params[1] < ranges[1,1]: # mu_1
                         if params[2] > ranges[2,0] and params[2] < ranges[2,1]: #sigma_1
                             if params[1] < params[3]:
-                                if params[2] < params[4]: # must get diff sdevs
-                                    if params[3] > ranges[3,0] and params[3] < ranges[3,1]: # mu_2
-                                        if params[4] > ranges[4,0] and params[4] < ranges[4,1]: # sigma_2
-                                            if params[5] > ranges[5,0] and params[5] < ranges[5,1]: # m_TOV
-                                                if params[6] > ranges[6,0] and params[6] < ranges[6,1]: # bh_min
-                                                    if params[7] > ranges[7,0] and params[7] < ranges[7,1]: # bh_slope
-                                                        if self.vary_slope:
-                                                            if params[8] > ranges[8,0] and params[8] < ranges[8,1]: # slope
-                                                                if self.spinning:
-                                                                    if params[9] > ranges[9,0] and params[9] < ranges[9,1]: # max jjkep
-                                                                        if params[10] >= ranges[10,0] and params[10] < ranges[10,1]:
-                                                                            return self.pop_like(data, params)
-                                                                    return -np.inf
-                                                                return self.pop_like(data, params)
-                                                        else:
+                                #if params[2] < params[4]: # must get diff sdevs
+                                if params[3] > ranges[3,0] and params[3] < ranges[3,1]: # mu_2
+                                    if params[4] > ranges[4,0] and params[4] < ranges[4,1]: # sigma_2
+                                        if params[5] > ranges[5,0] and params[5] < ranges[5,1]: # m_TOV
+                                            if params[6] > ranges[6,0] and params[6] < ranges[6,1]: # bh_min
+                                                if params[7] > ranges[7,0] and params[7] < ranges[7,1]: # bh_slope
+                                                    if self.vary_slope:
+                                                        if params[8] > ranges[8,0] and params[8] < ranges[8,1]: # slope
                                                             if self.spinning:
-                                                                if params[8] > ranges[8,0] and params[8] < ranges[8,1]: # max jjkep
-                                                                    if params[9] >= ranges[9,0] and params[9] < ranges[9,1]:
+                                                                if params[9] > ranges[9,0] and params[9] < ranges[9,1]: # max jjkep
+                                                                    if params[10] >= ranges[10,0] and params[10] < ranges[10,1]:
                                                                         return self.pop_like(data, params)
                                                                 return -np.inf
                                                             return self.pop_like(data, params)
+                                                    else:
+                                                        if self.spinning:
+                                                            if params[8] > ranges[8,0] and params[8] < ranges[8,1]: # max jjkep
+                                                                if params[9] >= ranges[9,0] and params[9] < ranges[9,1]:
+                                                                    return self.pop_like(data, params)
+                                                            return -np.inf
+                                                        return self.pop_like(data, params)
                 return -np.inf
 
 

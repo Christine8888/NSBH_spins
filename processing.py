@@ -637,13 +637,13 @@ def table_realdata(save=True, name='default'):
             test.append(lmg_dat[7])
             test.append(lmg_dat[8])
 
-            if 'withgw190814' in i:
-                spin_path = '../spin_results/outputs/real_data/minspin/' + i
-                spin_dat = np.genfromtxt(spin_path)
-                spin_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(spin_dat[3], spin_dat[4]-spin_dat[3], spin_dat[3]-spin_dat[2])
-                test.append(spin_str)
-            else:
-                test.append('')
+            #if 'withgw190814' in i:
+            #    spin_path = '../spin_results/outputs/real_data/minspin/' + i
+            #    spin_dat = np.genfromtxt(spin_path)
+            #    spin_str = '${0:.1f}^{{+{1:.1f}}}_{{-{2:.1f}}}$'.format(spin_dat[3], spin_dat[4]-spin_dat[3], spin_dat[3]-spin_dat[2])
+            #    test.append(spin_str)
+            #else:
+            #    test.append('')
 
             #print(test)
             rows_list.append(test)
