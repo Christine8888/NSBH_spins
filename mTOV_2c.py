@@ -48,7 +48,7 @@ pop_samples = nsbh_population.get_population(event_counts[0], True)
 
 if args.free:
     N = 6000
-    fixed = {"m_TOV":[mtov_True,1.7,3.2], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+    fixed = {"m_TOV":[mtov_True,1.7,3.2], "bh_min": bh_min, "bh_slope": bh_slope}
 else:
     N = 2000
     fixed = {"a":0.63, "mu_1": 1.35, "sigma_1":0.07, "mu_2": 1.85, "sigma_2":0.35, "m_TOV":[mtov_True,1.7,3.2], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}

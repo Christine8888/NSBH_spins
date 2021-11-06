@@ -572,8 +572,10 @@ def table(folder, mode, already_done = None, dlist=None, save=None, plot=True):
                     test.append(10**intercept)
                     rows_list.append(test)
 
-        if save is not None:
-            pd.DataFrame(rows_list).to_csv('../spin_results/{}.csv'.format(save))
+    if save is not None:
+        pd.DataFrame(rows_list).to_csv('../spin_results/{}.csv'.format(save))
+    return rows_list
+
 
 def table_realdata(save=True, name='default'):
     rows_list = []
