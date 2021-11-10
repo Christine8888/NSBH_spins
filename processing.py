@@ -48,7 +48,7 @@ def get_constraints(data, name, folder='real_data', boundaries=None):
     constraints = np.zeros(7)
     sigma_1 = quantiles_from_data(data, [0.159, 0.841])
     sigma_2 = quantiles_from_data(data, [0.025, 0.975])
-    sigma_3 = quantiles_from_data(data, [0.0015, 0.997])
+    sigma_3 = quantiles_from_data(data, [0.0015, 0.9985])
 
     med = quantiles_from_data(data, [0.5])
 

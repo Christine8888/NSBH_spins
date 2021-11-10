@@ -116,9 +116,9 @@ def real_data_prior(samples):
     if realdata_type == "direct":
         return np.ones(m1.shape[0])
 
-    elif realdata_type == "pos_chieff" or realdata_type == "chieff":
+    else:
         q = m2/m1
-        chieff_dat = chieff(m1, m2, a1, a2)
+        chieff_dat = chieff(m1, m2, a1*0.7, a2*0.7)
         chieff_weight = np.zeros(m1.shape[0])
 
         case1 = np.logical_or(chieff_dat < -0.7, chieff_dat > 0.7)
@@ -1010,6 +1010,7 @@ class Population():
         #print(np.mean(p_m1*p_m2*p_q*spin_likes/weight))
         #print(samples[:,3])
         #print(spin_likes)
+
         return np.mean(p_m1*p_m2*p_q*spin_likes/weight)
 
     # BUG: cannot have both free spin parameters and varying slope
@@ -1018,6 +1019,7 @@ class Population():
             weight = real_data_prior(samples)
         else:
             weight=1
+
         # params: a, mu_1, sigma_1, mu_2, sigma_2, m_TOV, bh_min, bh_slope, slope (optional)
         # REPLACE LIKELIHOODS!
         p_m1 = like_plmin(samples[:,0], params[6], params[7])
@@ -1057,6 +1059,7 @@ class Population():
 
             return p_m1*p_m2*p_q*spin_likes
         return np.mean(p_m1*p_m2*p_q*spin_likes/weight)
+
 
     def event_likelihood_one_single(self, samples, params):
         i = samples[0]
