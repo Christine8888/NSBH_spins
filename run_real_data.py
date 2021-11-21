@@ -59,7 +59,7 @@ betastr = ''
 if args.beta != 3:
     betastr = '{}q'.format(args.beta)
 
-max_jjkep = 0.1
+max_jjkep = 1.0
 spin_slope = 0
 bh_min = 5
 bh_slope = 2
@@ -82,7 +82,7 @@ elif args.poptype == "2c":
     fixed = {"mu_1": [1.5, 1.0, 3.0],"sigma_1":[0.5, 0.01, 1.5],"mu_2": [1.5, 1.0, 3.0],"sigma_2":[0.5, 0.01, 1.5],"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 if args.freespin:
-    fixed['max_jjkep'] = [1.0, 0.1, 1.0]
+    fixed['max_jjkep'] = [1.0, 0.8, 1.0]
     fixed['spin_slope'] = [0.0, -0.01, 6.0]
 
 

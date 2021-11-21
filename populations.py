@@ -71,7 +71,7 @@ def set_detector(instrument):
         injection_set = np.genfromtxt('./injections/threshold_8_injections_AP.txt')
         injection_set_bns = np.genfromtxt('./injections/threshold_8_bns_injections_AP.txt')
 
-        max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 1)
+        max_z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, horizon, 0, 5)
         zs = np.linspace(0.0,max_z, 10000)
 
     if instrument == "O3":
@@ -184,6 +184,7 @@ def check_injection(m1, m2, interp, ref_dL = 1, threshold = DET_THRESHOLD): # re
     # z = cosmo.z_at_value(cosmo.Planck15.luminosity_distance, dL*u.Gpc)
     z = float(generate_z(1))
     dL = cosmo.Planck15.luminosity_distance(z).to(u.Gpc).value
+    #print(z, dL)
     theta = float(s.draw_thetas(1))
     # print(interp.ev(m1*(1+z), m2*(1+z)))
     snr = interp.ev(m1*(1+z), m2*(1+z)) * ref_dL/dL
@@ -194,17 +195,17 @@ def check_injection(m1, m2, interp, ref_dL = 1, threshold = DET_THRESHOLD): # re
 
 def create_injection_set(N, generate_injection, interp, threshold = DET_THRESHOLD):
     i = 0
-    # tot = 0
+    tot = 0
     injection_set = np.zeros((N, 2))
     while i < N:
-        # tot += 1
+        tot += 1
         injection = generate_injection()
         recovered, value = check_injection(injection[0], injection[1], interp, threshold = threshold)
         if recovered:
-            # print(value)
+
             injection_set[i] = injection
             i += 1
-    # print(N/tot)
+    print(N/tot)
     return injection_set
 
 def generate_normal(size, mu, sigma):
@@ -1533,7 +1534,7 @@ class Population():
                 p0 = [self.mu, self.sigma, mTOV_fix, self.bh_min, self.bh_slope]
                 # pscale = [0.05, 0.1, 0.01, 0.1, 0.05, 0.1, 0.2, 0.2]
                 pos = p0 + pscale*np.random.randn(10, 5)
-            # print(p0, pos)
+            print(p0, pos)
 
         elif self.pop_type == "two":
             ranges, pscale = fix_params_two(fixed, self.vary_slope, self.spinning)
