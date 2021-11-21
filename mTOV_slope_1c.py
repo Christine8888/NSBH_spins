@@ -28,7 +28,6 @@ parser.add_argument("--bh_slope", type=float, default=2.0)
 parser.add_argument("--slope", type=float, default=0.2)
 parser.add_argument("--folder", type=str, default="mTOV_convergence")
 parser.add_argument("--free", action='store_true')
-parser.add_argument("--freespin", action='store_true')
 args = parser.parse_args()
 
 event_counts = np.linspace(args.event_min, args.event_max, args.n_events, dtype='int')
