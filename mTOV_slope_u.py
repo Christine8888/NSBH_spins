@@ -27,6 +27,7 @@ parser.add_argument("--bh_min", type=float, default=5.0)
 parser.add_argument("--bh_slope", type=float, default=2.0)
 parser.add_argument("--slope", type=float, default=0.2)
 parser.add_argument("--folder", type=str, default="mTOV_convergence")
+parser.add_argument("--freespin", action='store_true')
 args = parser.parse_args()
 
 event_counts = np.linspace(args.event_min, args.event_max, args.n_events, dtype='int')
@@ -46,7 +47,10 @@ nsbh_population.set_injection_spins(p.injection_set)
 
 pop_samples = nsbh_population.get_population(event_counts[0], True)
 
-fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.7,3.2], "slope":[slope, 0.0, 1.0], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
+if args.freespin:
+    fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.7,3.2], "slope":[slope, 0.0, 1.0], "bh_min": bh_min, "bh_slope": bh_slope}
+else:
+    fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.7,3.2], "slope":[slope, 0.0, 1.0], "bh_min": bh_min, "bh_slope": bh_slope, "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 for i in range(5):
     samples, likes = nsbh_population.infer(pop_samples, 4000, mult=True, save_to = None,fixed=fixed)
