@@ -25,6 +25,7 @@ parser.add_argument('--name', type=str)
 parser.add_argument('--beta', type=int, default=3)
 parser.add_argument('--poptype', type=str, default="u")
 parser.add_argument("--freespin", action='store_true')
+parser.add_argument("--slope", action='store_true')
 
 args = parser.parse_args()
 
@@ -70,15 +71,15 @@ p.set_real_data(args.type)
 
 if args.poptype =="u":
     print("uniform population")
-    nsbh_population = p.Population([1.5, 100, mtov_True, 1, args.beta, 5, 2], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+    nsbh_population = p.Population([1.5, 100, mtov_True, 1, args.beta, 5, 2, 0.2], 'nsbh_one', vary_slope=args.slope, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
     fixed = {"mu": 1.5, "sigma":100, "m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 elif args.poptype=="1c":
     print("1 component")
-    nsbh_population = p.Population([1.5, 0.5, mtov_True, 1, args.beta, 5, 2], 'nsbh_one', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+    nsbh_population = p.Population([1.5, 0.5, mtov_True, 1, args.beta, 5, 2, 0.2], 'nsbh_one', vary_slope=args.slope, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
     fixed = {"mu": [1.5, 1.0, 3.0],"sigma":[0.5, 0.01, 1.5], "m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 elif args.poptype == "2c":
     print("2 component")
-    nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, mtov_True, 1, args.beta, 5, 2], 'nsbh', vary_slope=False, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
+    nsbh_population = p.Population([0.63, 1.35, 0.07, 1.85, 0.35, mtov_True, 1, args.beta, 5, 2, 0.2], 'nsbh', vary_slope=args.slope, selection=True, m1_nospin = True, spinning=True, spin_params=[max_jjkep, spin_slope])
     fixed = {"mu_1": [1.5, 1.0, 3.0],"sigma_1":[0.5, 0.01, 1.5],"mu_2": [1.5, 1.0, 3.0],"sigma_2":[0.5, 0.01, 1.5],"m_TOV":[mtov_True,1.5,3.5], "bh_min":[bh_min, 1.5, 10], "bh_slope": [bh_slope, 0, 10], "max_jjkep": max_jjkep, "spin_slope": spin_slope}
 
 if args.freespin:
