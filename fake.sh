@@ -9,3 +9,8 @@ python run_real_data.py --gw190426 --gw190814 --type fake --name fake --poptype 
 python run_real_data.py --gw190426 --type fake --name fake --poptype u --freespin --beta 0
 python run_real_data.py --gw190814 --type fake --name fake --poptype u --freespin --beta 0
 python run_real_data.py --type fake --name fake --poptype u --freespin --beta 0
+
+python run_real_data.py --gw190426 --gw190814 --type fake --name fake --poptype 2c --freespin --beta 0
+python run_real_data.py --gw190426 --type fake --name fake --poptype 2c --freespin --beta 0
+python run_real_data.py --gw190814 --type fake --name fake --poptype 2c --freespin --beta 0
+python run_real_data.py --type fake --name fake --poptype 2c --freespin --beta 0
