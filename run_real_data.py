@@ -92,5 +92,5 @@ nsbh_population.samples = True
 
 samples, likes = nsbh_population.infer(all_samples, 20000, mult=True, save_to = None,fixed=fixed)
 
-np.savetxt('../spin_results/real_data/{}_{}_{}_{}_{}_{}.txt'.format(args.poptype, args.name, args.type, gw190814_str, gw190426_str, betastr), samples)
-np.savetxt('../spin_results/real_data/{}_{}_{}_{}_{}_{}_likes.txt'.format(args.poptype, args.name, args.type, gw190814_str, gw190426_str, betastr), likes)
+np.savetxt('../real_data/{}_{}_{}_{}_{}_{}.txt'.format(args.poptype, args.name, args.type, gw190814_str, gw190426_str, betastr), samples)
+np.savetxt('../real_data/{}_{}_{}_{}_{}_{}_likes.txt'.format(args.poptype, args.name, args.type, gw190814_str, gw190426_str, betastr), likes)
