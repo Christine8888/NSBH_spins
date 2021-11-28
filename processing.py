@@ -211,7 +211,7 @@ def processing(folder, mode, dlist=None, plot=True, name='default'):
                 root = i.split('.')[0]
                 print(root)
                 real = np.genfromtxt(base + '{}.txt'.format(root))
-                likes = np.genfromtxt(base + '{}_likes.txt'.format(root))
+                #likes = np.genfromtxt(base + '{}_likes.txt'.format(root))
                 indices = np.arange(real.shape[0])
                 N = 1000
                 cutoff = np.zeros(N)
@@ -269,7 +269,7 @@ def processing(folder, mode, dlist=None, plot=True, name='default'):
                 root = i.split('.')[0]
                 print(root)
                 real = np.genfromtxt(base + '{}.txt'.format(root))
-                likes = np.genfromtxt(base + '{}_likes.txt'.format(root))
+                #likes = np.genfromtxt(base + '{}_likes.txt'.format(root))
 
                 if '2c' in root:
                     get_constraints(real[:,5], 'mTOV/{}.txt'.format(root), folder=folder)
