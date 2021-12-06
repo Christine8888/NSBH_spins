@@ -86,6 +86,9 @@ if args.freespin:
     fixed['max_jjkep'] = [1.0, 0.8, 1.0]
     fixed['spin_slope'] = [0.0, -0.01, 6.0]
 
+if args.slope:
+    fixed['slope'] = [0.0, -0.5, 0.5]
+
 
 nsbh_population.set_injection_spins(p.injection_set)
 nsbh_population.samples = True
